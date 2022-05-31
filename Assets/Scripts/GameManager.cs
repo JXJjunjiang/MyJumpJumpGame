@@ -34,6 +34,7 @@ public class GameManager : Singalton<GameManager>
     {
         Vector3 spawnPos = GetNextPlatformPos(prePlatform.localPosition);
         Transform result = Instantiate<GameObject>(platformPrefab, platformRoot).transform;
+        result.name = PlatformPrefabName + spawnPlatform.Count.ToString();
         spawnPlatform.Add(result);
         result.Reset();
         result.localScale = PlatformPrefabSize;

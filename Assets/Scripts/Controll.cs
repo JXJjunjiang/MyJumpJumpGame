@@ -84,6 +84,13 @@ public class Controll : MonoBehaviour
         SetPlatformYPos(scale);
     }
 
+    void PlayerFollow()
+    {
+        Vector3 pos = character.localPosition;
+        pos.Set(pos.x, curPlatform.localScale.y + character.localScale.y, pos.z);
+        character.localPosition = pos;
+    }
+
     void SetPlatformYPos(Vector3 scale)
     {
         Vector3 pos = curPlatform.localPosition;
@@ -116,6 +123,11 @@ public class Controll : MonoBehaviour
             {
                 Jump();
             }
+        }
+
+        if (isPress)
+        {
+            PlayerFollow();
         }
     }
 
@@ -199,6 +211,7 @@ public class Controll : MonoBehaviour
     }
     #endregion
 
+    #region Area
     void GetNextArea()
     {
         Vector3 nextPos = nextPlatform.localPosition;
@@ -229,6 +242,9 @@ public class Controll : MonoBehaviour
         return false;
     }
 
+    #endregion
+
+    #region Camera
     void CameraFocus()
     {
         Vector3 camEndPos = character.position + cam2playerDistance * cam2playerDir;
@@ -244,4 +260,5 @@ public class Controll : MonoBehaviour
         float distance = Vector3.Distance(camEndPos, Camera.main.transform.position);
         Camera.main.transform.position += dir * distance * t;
     }
+    #endregion
 }
