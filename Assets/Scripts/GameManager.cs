@@ -4,7 +4,7 @@ using UnityEngine;
 using DG.Tweening;
 
 
-public class GameManager : Singalton<GameManager>
+public class GameManager : MonoSingleton<GameManager>
 {
     private const string PlatformPrefabName = "Platform";
     public readonly Vector3 PlatformPrefabSize = new Vector3(3f, 2f, 3f);

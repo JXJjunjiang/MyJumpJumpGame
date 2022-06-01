@@ -30,7 +30,7 @@ public class Controll : MonoBehaviour
         curPlatform = GameObject.Find("Platform").transform;
         nextPlatform = null;
         character = GameObject.Find("Player").transform;
-        platformSize.Set(GameManager.Instance.PlatformPrefabSize.x, GameManager.Instance.PlatformPrefabSize.z);
+        platformSize.Set(GameManager.Inst.PlatformPrefabSize.x, GameManager.Inst.PlatformPrefabSize.z);
         jugeArea = new Rect[2] { new Rect(), new Rect() };//第0个代表现在的platform，第1个代表下一个platform
 
         GameStart();
@@ -52,7 +52,7 @@ public class Controll : MonoBehaviour
 
     void Spawn(Transform next)
     {
-        JumpTrs jt = GameManager.Instance.GeneratePlatform(next);
+        JumpTrs jt = GameManager.Inst.GeneratePlatform(next);
         curPlatform = jt.currentTrs;
         nextPlatform = jt.nextTrs;
     }
