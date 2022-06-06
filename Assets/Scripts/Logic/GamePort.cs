@@ -20,7 +20,10 @@ public class GamePort : MonoBehaviour
         }
         CreateTargetManager<AudioManager>("AudioManager");
         CreateTargetManager<CoroutineManager>("CoroutineManager");
+        CreateTargetManager<DatabaseMgr>("DatabaseManager");
+        CreateTargetManager<UIManager>("UIManager");
         CreateTargetManager<GameManager>("GameManager");
+        DestroyImmediate(this.gameObject);
     }
 
     void CreateTargetManager<T>(string managerName) where T : MonoSingleton<T>

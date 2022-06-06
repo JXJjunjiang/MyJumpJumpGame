@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class AudioManager : MonoSingleton<AudioManager>
+public class AudioManager : MonoSingleton<AudioManager>,IMgrInit
 {
     private AudioSetting gameAudio;
     private const string backgroundMusic= "BGM";
@@ -13,6 +13,11 @@ public class AudioManager : MonoSingleton<AudioManager>
     protected override void Awake()
     {
         base.Awake();
+        Init();
+    }
+
+    public void Init()
+    {
         audioItems = new Dictionary<string, GameObject>();
         gameAudio = Loader.LoadAudioSetting();
     }
@@ -118,5 +123,14 @@ public class AudioManager : MonoSingleton<AudioManager>
             DestroyImmediate(audioItems[audioItemName]);
             audioItems.Remove(audioItemName);
         }
+    }
+
+    void OnDisable()
+    {
+        UnInit();
+    }
+
+    public void UnInit()
+    {
     }
 }

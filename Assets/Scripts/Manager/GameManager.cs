@@ -4,14 +4,21 @@ using UnityEngine;
 using DG.Tweening;
 
 
-public class GameManager : MonoSingleton<GameManager>
+public class GameManager : MonoSingleton<GameManager>,IMgrInit
 {
     private const string PlatformPrefabName = "Platform";
     public readonly Vector3 PlatformPrefabSize = new Vector3(3f, 2f, 3f);
+    /// <summary>
+    /// 生成平台在X轴上的间隔
+    /// </summary>
     private readonly Vector2 ClampSpawnX = new Vector2(-10f, -5f);
+    /// <summary>
+    /// 生成平台在Z轴上的间隔
+    /// </summary>
     private readonly Vector2 ClampSpawnZ = new Vector2(5f, 10f);
     private readonly float SpawnY = 1f;
 
+    private Transform gameRoot = null;
     private GameObject platformPrefab = null;
     private Transform platformRoot = null;
     private List<Transform> spawnPlatform;
@@ -19,10 +26,22 @@ public class GameManager : MonoSingleton<GameManager>
     protected override void Awake ()
     {
         base.Awake();
-        platformPrefab = Resources.Load(PlatformPrefabName) as GameObject;
-        platformRoot = GameObject.Find("PlatformRoot").transform;
+        Init();
+        EventDispatcher.Attach("StartGame", StartGame);
+    }
+
+    public void Init()
+    {
+        gameRoot = Instantiate<Transform>(Loader.LoadPrefab("Game").transform);
+        platformPrefab = Loader.LoadPrefab(PlatformPrefabName);
+        platformRoot = gameRoot.Find("PlatformRoot");
         spawnPlatform = new List<Transform>();
-        spawnPlatform.Add(GameObject.Find("Platform").transform);
+    }
+
+    void StartGame(EventArgs args)
+    {
+        /*生成一个平台，主角从天而降，落稳后再次生成另一个新平台*/
+        SpawnPlatform(Vector3.zero);
     }
 
     /// <summary>
@@ -32,16 +51,21 @@ public class GameManager : MonoSingleton<GameManager>
     /// <returns></returns>
     public JumpTrs GeneratePlatform(Transform prePlatform)
     {
-        Vector3 spawnPos = GetNextPlatformPos(prePlatform.localPosition);
-        Transform result = Instantiate<GameObject>(platformPrefab, platformRoot).transform;
+        Vector3 spawnPos = prePlatform == null ? Vector3.zero : GetNextPlatformPos(prePlatform.localPosition);
+        Transform result = SpawnPlatform(spawnPos);
+        return new JumpTrs(SearchSpawnList(prePlatform.name), result);
+    }
+
+    public Transform SpawnPlatform(Vector3 pos)
+    {
+        Transform result = Instantiate<Transform>(platformPrefab.transform, platformRoot);
         result.name = PlatformPrefabName + spawnPlatform.Count.ToString();
         spawnPlatform.Add(result);
         result.Reset();
         result.localScale = PlatformPrefabSize;
-        result.localPosition = new Vector3(spawnPos.x, -SpawnY, spawnPos.z);
+        result.localPosition = new Vector3(pos.x, -SpawnY, pos.z);
         result.DOLocalMoveY(SpawnY, 0.2f);
-
-        return new JumpTrs(SearchSpawnList(prePlatform.name), result);
+        return result;
     }
 
     Vector3 GetNextPlatformPos(Vector3 prePos)
@@ -75,37 +99,15 @@ public class GameManager : MonoSingleton<GameManager>
         }
         return null;
     }
-}
 
-public class Singalton<T> : MonoBehaviour where T : MonoBehaviour
-{
-    private static T _instance;
-    public static T Instance
+    void OnDisable()
     {
-        get => _instance;
+        UnInit();
     }
 
-    protected virtual void Awake()
+    public void UnInit()
     {
-        if (_instance == null)
-        {
-            _instance = this as T;
-        }
-        else
-        {
-            _instance = null;
-            DestroyImmediate(this.gameObject);
-        }
-        DontDestroyOnLoad(this.gameObject);
-    }
-}
-public static class UnityExtension
-{
-    public static void Reset(this Transform trs)
-    {
-        trs.localScale = Vector3.one;
-        trs.localPosition = Vector3.zero;
-        trs.localRotation = Quaternion.identity;
+        
     }
 }
 public class JumpTrs
@@ -121,4 +123,10 @@ public class JumpTrs
     {
 
     }
+}
+public interface IMgrInit
+{
+    void Init();
+
+    void UnInit();
 }

@@ -4,9 +4,9 @@ using UnityEngine;
 
 public class Loader : MonoBehaviour
 {
-    private const string PrefabPath = "";
-    private const string AudioPath = "";
-    private const string AudioSettingPath = "";
+    private const string PrefabPath = "Prefab/";
+    private const string AudioPath = "Audio/";
+    private const string AudioSettingPath = "GameAudio";
 
     public static GameObject LoadPrefab(string prefabName)
     {
@@ -18,7 +18,7 @@ public class Loader : MonoBehaviour
         GameObject targetLoad = Resources.Load<GameObject>(PrefabPath + prefabName);
         if (targetLoad==null)
         {
-            Debug.LogError("prefab does not exsit in " + PrefabPath);
+            Debug.LogError("prefab does not exsit in " + PrefabPath+prefabName);
             return null;
         }
         return targetLoad;

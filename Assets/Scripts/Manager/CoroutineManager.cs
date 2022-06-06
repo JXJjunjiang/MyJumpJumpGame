@@ -2,15 +2,21 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CoroutineManager : MonoSingleton<CoroutineManager>
+public class CoroutineManager : MonoSingleton<CoroutineManager>,IMgrInit
 {
     private Dictionary<string, GameObject> coroutineCache;
 
     protected override void Awake()
     {
         base.Awake();
+        Init();
+    }
+
+    public void Init()
+    {
         coroutineCache = new Dictionary<string, GameObject>();
     }
+
 
     public void Run(IEnumerator coroutine,string tag)
     {
@@ -39,5 +45,13 @@ public class CoroutineManager : MonoSingleton<CoroutineManager>
         }
         DestroyImmediate(coroutineCache[tag]);
         coroutineCache.Remove(tag);
+    }
+
+    void OnDisable()
+    {
+        UnInit();
+    }
+    public void UnInit()
+    {
     }
 }
