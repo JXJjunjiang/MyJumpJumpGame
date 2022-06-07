@@ -6,10 +6,12 @@ using UnityEngine.UI;
 public class Panel_Setting : UIBase
 {
     private Button maskBtn, bgmBtn, gameBtn, virbrateBtn;
+    private AudioSetting audioSet;
 
     protected override void Awake()
     {
         base.Awake();
+        audioSet = Loader.LoadAudioSetting();
         maskBtn = transform.Find("Mask").GetComponent<Button>();
         maskBtn.AddListener(() =>
         {

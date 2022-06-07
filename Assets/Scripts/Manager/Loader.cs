@@ -4,21 +4,38 @@ using UnityEngine;
 
 public class Loader : MonoBehaviour
 {
-    private const string PrefabPath = "Prefab/";
+    private const string GamePath = "Prefab/Game/";
+    private const string UIPath = "Prefab/UI/";
     private const string AudioPath = "Audio/";
     private const string AudioSettingPath = "GameAudio";
 
-    public static GameObject LoadPrefab(string prefabName)
+    public static GameObject LoadUI(string uiName)
     {
-        if (string.IsNullOrEmpty(prefabName))
+        if (string.IsNullOrEmpty(uiName))
         {
-            Debug.LogError("prefab name is empty");
+            Debug.LogError("ui name is empty");
             return null;
         }
-        GameObject targetLoad = Resources.Load<GameObject>(PrefabPath + prefabName);
+        GameObject targetLoad = Resources.Load<GameObject>(UIPath + uiName);
         if (targetLoad==null)
         {
-            Debug.LogError("prefab does not exsit in " + PrefabPath+prefabName);
+            Debug.LogError("prefab does not exsit in " + UIPath+uiName);
+            return null;
+        }
+        return targetLoad;
+    }
+
+    public static GameObject LoadGame(string gameName)
+    {
+        if (string.IsNullOrEmpty(gameName))
+        {
+            Debug.LogError("game name is empty");
+            return null;
+        }
+        GameObject targetLoad = Resources.Load<GameObject>(GamePath + gameName);
+        if (targetLoad == null)
+        {
+            Debug.LogError("prefab does not exsit in " + GamePath + gameName);
             return null;
         }
         return targetLoad;
