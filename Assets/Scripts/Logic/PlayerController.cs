@@ -21,7 +21,7 @@ public class PlayerController : MonoBehaviour
     /// <summary>
     /// 角色跳起的横向速度
     /// </summary>
-    private const float JumpHorizontalSpeed = 15f;
+    private const float JumpHorizontalSpeed = 25f;
     /// <summary>
     /// platform水平大小
     /// </summary>
@@ -59,20 +59,13 @@ public class PlayerController : MonoBehaviour
 
     public void Init()
     {
-        GameStart();
-        platformSize.Set(GameManager.Inst.PlatformPrefabSize.x, GameManager.Inst.PlatformPrefabSize.z);
-        jugeArea = new Rect[2] { new Rect(), new Rect() };//第0个代表现在的platform，第1个代表下一个platform
-    }
-
-    void GameStart()
-    {
-        if (curPlatform!=null)
+        if (curPlatform != null)
         {
             DestroyImmediate(curPlatform.gameObject);
             curPlatform = null;
         }
         curPlatform = GameManager.Inst.SpawnPlatform(Vector3.zero);
-        if (nextPlatform!=null)
+        if (nextPlatform != null)
         {
             DestroyImmediate(nextPlatform.gameObject);
             nextPlatform = null;
@@ -83,7 +76,7 @@ public class PlayerController : MonoBehaviour
         isPress = false;
         isJump = false;
         jumpTime = 0;
-        if (character==null)
+        if (character == null)
         {
             var obj = Instantiate<GameObject>(Loader.LoadGame("Player"));
             character = obj.transform;
@@ -97,6 +90,8 @@ public class PlayerController : MonoBehaviour
         cam2playerDir = (cameraTrs.position - character.position).normalized;
         cam2playerDistance = Vector3.Distance(character.position, cameraTrs.position);
         CameraFocus();
+        platformSize.Set(GameManager.Inst.PlatformPrefabSize.x, GameManager.Inst.PlatformPrefabSize.z);
+        jugeArea = new Rect[2] { new Rect(), new Rect() };//第0个代表现在的platform，第1个代表下一个platform
     }
 
 
@@ -250,7 +245,6 @@ public class PlayerController : MonoBehaviour
         {
             if (!IsInSameArea())
             {
-                //Spawn(nextPlatform);
                 curPlatform = GameManager.Inst.SearchPool(nextPlatform.name);
                 Vector3 nextPos = GameManager.Inst.GetNextPlatformPos(curPlatform.position);
                 nextPlatform = GameManager.Inst.SpawnPlatform(nextPos);
@@ -260,6 +254,15 @@ public class PlayerController : MonoBehaviour
             }
             GameManager.CanControll = true;
         }
+        else
+        {
+            PlayerFall(() => { GameManager.Inst.GameStart(); });
+        }
+    }
+
+    void PlayerFall(System.Action callback)
+    {
+        character.DOLocalMoveY(1, 0.5f).onComplete = () => callback?.Invoke();
     }
     #endregion
 
