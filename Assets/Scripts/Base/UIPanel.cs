@@ -7,6 +7,7 @@ public enum UIPanel
     Main = 1,
     Setting,
     MoreInfo,
+    Fail,
     EnterGame,
     ExitGame,
     Game,

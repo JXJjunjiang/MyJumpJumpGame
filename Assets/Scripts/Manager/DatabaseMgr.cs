@@ -38,7 +38,8 @@ public class DatabaseMgr : MonoSingleton<DatabaseMgr>,IMgrInit
             { UIPanel.Main,new UIInfo(UIPanel.Main,UILayer.Bottom,1,"Main")},
             { UIPanel.MoreInfo,new UIInfo(UIPanel.MoreInfo,UILayer.Bottom,2,"MoreInfo") },
             { UIPanel.Setting,new UIInfo(UIPanel.Setting,UILayer.Bottom,2,"Setting") },
-            { UIPanel.Game,new UIInfo(UIPanel.Game,UILayer.Bottom,1,"GameUI")}
+            { UIPanel.Game,new UIInfo(UIPanel.Game,UILayer.Bottom,1,"GameUI")},
+            {UIPanel.Fail,new UIInfo(UIPanel.Fail,UILayer.Pop,1,"GameFail") }
         };
         ReadData();
     }

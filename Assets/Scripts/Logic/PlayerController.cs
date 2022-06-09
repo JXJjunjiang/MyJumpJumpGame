@@ -256,7 +256,7 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
-            PlayerFall(() => { GameManager.Inst.GameStart(); });
+            PlayerFall(() => { UIManager.OpenUI<Pop_Fail>(UIPanel.Fail); });
         }
     }
 

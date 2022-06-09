@@ -91,6 +91,11 @@ public class GameManager : MonoSingleton<GameManager>,IMgrInit
         controller.Init();
     }
 
+    public void GameExit()
+    {
+
+    }
+
     public Transform SpawnPlatform(Vector3 pos)
     {
         Transform result = PoolDecollect();
