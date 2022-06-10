@@ -143,7 +143,7 @@ public class GameManager : MonoSingleton<GameManager>,IMgrInit
         Vector3 result = Vector3.zero;
         float x = 0;
         float z = 0;
-        if (Random.Range(1,2)==1)
+        if (Random.Range(1,3)==1)
         {
             x = Random.Range(ClampSpawnX.x, ClampSpawnX.y);
         }

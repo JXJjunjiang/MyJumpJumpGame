@@ -9,11 +9,11 @@ public class PlayerController : MonoBehaviour
     /// <summary>
     /// platform压缩与弹起的高度限制
     /// </summary>
-    private const float MinScaleY = 0.2f, MaxScaleY = 2f;
+    private const float MinScaleY = 0.4f, MaxScaleY = 2f;
     /// <summary>
     /// platform压缩与弹起的速度
     /// </summary>
-    private const float YDownSpeed = 0.1f, YUpSpeed = 0.3f;
+    private const float YDownSpeed = 0.01f, YUpSpeed = 0.3f;
     /// <summary>
     /// 角色跳起的最高高度
     /// </summary>
@@ -52,6 +52,7 @@ public class PlayerController : MonoBehaviour
     private float cam2playerDistance;
 
     private bool isPress;
+    private bool isUping;
     private Vector3 startPoint, midPoint, endPoint;
     private float jumpTime = 0;
     private Transform cameraTrs;
@@ -110,16 +111,20 @@ public class PlayerController : MonoBehaviour
 
     void PlatformUp()
     {
+        isUping = true;
+        float y = Mathf.Abs(curPlatform.localScale.y - MaxScaleY);
         Vector3 scale = curPlatform.localScale;
-        float scaleY = Mathf.Clamp(scale.y + YUpSpeed, MinScaleY, MaxScaleY);
-        scale.Set(scale.x, scaleY, scale.z);
-        curPlatform.localScale = scale;
-        //判断是否可以起跳
-        if (Mathf.Abs(MaxScaleY-scale.y)<=0.1f)
+        DOTween.To((t) =>
         {
-            isPress = false;
-        }
-        SetPlatformYPos(scale);
+            Vector3 newScale = scale;
+            newScale.Set(scale.x, scale.y + y * t, scale.z);
+            curPlatform.localScale = newScale;
+            SetPlatformYPos(newScale);
+        }, 0, 1, 0.3f).SetEase(Ease.InOutBack,3f).onComplete = () => 
+        {
+            curPlatform.localScale = new Vector3(platformSize.x, MaxScaleY, platformSize.y);
+            isUping = false;
+        };
     }
 
     void PlayerFollow()
@@ -155,10 +160,18 @@ public class PlayerController : MonoBehaviour
             isPress = true;
             SetThreePoint();
         }
-        else if(isPress)
+
+        if(isPress&&!Panel_Game.touch.IsHold)
         {
             UIManager.CanTouch = false;
-            PlatformUp();
+            if (!isUping)
+            {
+                PlatformUp();
+            }
+            if (Mathf.Abs(MaxScaleY - curPlatform.localScale.y) <= 0.1f)
+            {
+                isPress = false;
+            }
             if (!isPress)
             {
                 Jump();
