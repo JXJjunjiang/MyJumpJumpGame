@@ -18,7 +18,6 @@ public class Pop_Fail : UIBase
             UIManager.CloseUI(UIPanel.Fail);
             UIManager.CloseUI(UIPanel.Game);
             UIManager.OpenUI<Panel_Main>(UIPanel.Main);
-            GameManager.Inst.GameExit();
         });
     }
 

@@ -201,8 +201,11 @@ public class CodeGen
                     string @delegate = e.Current.typeDelegate;
                     string result = @delegate.Substring(@delegate.IndexOf("(") + 1, @delegate.IndexOf(")") - (@delegate.IndexOf("(") + 1));
                     string[] strs = result.Split(' ');
-                    strs[0] += "[]";
-                    result = strs[0] + " " + strs[1];
+                    if (strs.Length>1)
+                    {
+                        strs[0] += "[]";
+                        result = strs[0] + " " + strs[1];
+                    }
                     return result;
                 }
             }

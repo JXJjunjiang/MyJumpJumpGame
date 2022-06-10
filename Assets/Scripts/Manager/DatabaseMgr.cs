@@ -54,7 +54,7 @@ public class DatabaseMgr : MonoSingleton<DatabaseMgr>,IMgrInit
         return uiDatas[panel];
     }
 
-    public void ReadData()
+    private void ReadData()
     {
         _score = PlayerPrefs.GetInt(Key_Score);
         #region platform
@@ -88,13 +88,9 @@ public class DatabaseMgr : MonoSingleton<DatabaseMgr>,IMgrInit
         _playerPos = platPos;
         #endregion
     }
-    public void WriteData()
+    private void WriteData()
     {
 
-    }
-    void OnDisable()
-    {
-        UnInit();
     }
     public void UnInit()
     {

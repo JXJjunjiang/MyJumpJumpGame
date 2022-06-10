@@ -9,23 +9,23 @@ public class GameManager : MonoSingleton<GameManager>,IMgrInit
     /// <summary>
     /// 跳跃平台预制体名称
     /// </summary>
-    private const string PlatformPrefabName = "Platform";
+    private static string PlatformPrefabName = "Platform";
     /// <summary>
     /// 跳跃平台预制体尺寸
     /// </summary>
-    public readonly Vector3 PlatformPrefabSize = new Vector3(3f, 2f, 3f);
+    public static Vector3 PlatformPrefabSize = new Vector3(3f, 2f, 3f);
     /// <summary>
     /// 生成平台在X轴上的间隔
     /// </summary>
-    private readonly Vector2 ClampSpawnX = new Vector2(-10f, -5f);
+    private static Vector2 ClampSpawnX = new Vector2(-10f, -5f);
     /// <summary>
     /// 生成平台在Z轴上的间隔
     /// </summary>
-    private readonly Vector2 ClampSpawnZ = new Vector2(5f, 10f);
+    private static Vector2 ClampSpawnZ = new Vector2(5f, 10f);
     /// <summary>
     /// 平台Y轴位置
     /// </summary>
-    private readonly float SpawnY = 1f;
+    private static float SpawnY = 1f;
     /// <summary>
     /// 平台对象池的最大容量
     /// </summary>
@@ -66,9 +66,11 @@ public class GameManager : MonoSingleton<GameManager>,IMgrInit
         platformPrefab = Loader.LoadGame(PlatformPrefabName);
         platformRoot = gameRoot.Find("PlatformRoot");
         spawnPlatforms = new Queue<Transform>(PoolMaxItemsCount);
+        EventHandler.GameStart_Listener += InitData;
+        EventHandler.GameStart_Listener += InitPlayer;
     }
 
-    public void GameStart()
+    private void InitData()
     {
         _isGameEnd = false;
         _canControll = false;
@@ -78,8 +80,11 @@ public class GameManager : MonoSingleton<GameManager>,IMgrInit
             DestroyImmediate(spawnPlatforms.Dequeue().gameObject);
         }
         spawnPlatforms.Clear();
+    }
 
-        if (playerRoot==null)
+    private void InitPlayer()
+    {
+        if (playerRoot == null)
         {
             GameObject obj = new GameObject("PlayerRoot");
             playerRoot = obj.transform;
@@ -91,7 +96,7 @@ public class GameManager : MonoSingleton<GameManager>,IMgrInit
         controller.Init();
     }
 
-    public void GameExit()
+    private void GameExit()
     {
 
     }
@@ -165,13 +170,9 @@ public class GameManager : MonoSingleton<GameManager>,IMgrInit
         return null;
     }
 
-    void OnDisable()
-    {
-        UnInit();
-    }
-
     public void UnInit()
     {
-        
+        EventHandler.GameStart_Listener -= InitData;
+        EventHandler.GameStart_Listener -= InitPlayer;
     }
 }

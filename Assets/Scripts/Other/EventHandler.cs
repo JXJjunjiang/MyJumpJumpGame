@@ -3,54 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public delegate void TransformDelegate(Transform parameters);
 public delegate void IntDelegate(int parameters);
+public delegate void VoidDelegate();
 
 public class EventHandler
 {
-
-#region ScorePlus
-	private static List<TransformDelegate> ScorePlus_List;
-	public static event TransformDelegate ScorePlus_Listener
-	{
-		add
-		{
-			if(value != null)
-			{
-				if(ScorePlus_List == null)
-				{
-					ScorePlus_List = new List<TransformDelegate>(1);
-				}
-				ScorePlus_List.Add(value);
-			}
-		}
-		remove
-		{
-			if(value != null)
-			{
-				for(int i = 0;i<ScorePlus_List.Count;i++)
-				{
-					if(ScorePlus_List[i] != null && ScorePlus_List[i].Equals(value))
-					{
-						ScorePlus_List.RemoveAt(i);
-						break;
-					}
-				}
-			}
-		}
-	}
-	public static void ScorePlus_Dispatch(params Transform[] parameters)
-	{
-		if(ScorePlus_List == null || ScorePlus_List.Count <= 0)
-		{
-			return;
-		}
-		for(int i = 0;i < ScorePlus_List.Count;i++)
-		{
-			ScorePlus_List[i]?.Invoke(parameters[i]);
-		}
-	}
-#endregion
 
 #region ScoreTween
 	private static List<IntDelegate> ScoreTween_List;
@@ -91,6 +48,92 @@ public class EventHandler
 		for(int i = 0;i < ScoreTween_List.Count;i++)
 		{
 			ScoreTween_List[i]?.Invoke(parameters[i]);
+		}
+	}
+#endregion
+
+#region GameStart
+	private static List<VoidDelegate> GameStart_List;
+	public static event VoidDelegate GameStart_Listener
+	{
+		add
+		{
+			if(value != null)
+			{
+				if(GameStart_List == null)
+				{
+					GameStart_List = new List<VoidDelegate>(1);
+				}
+				GameStart_List.Add(value);
+			}
+		}
+		remove
+		{
+			if(value != null)
+			{
+				for(int i = 0;i<GameStart_List.Count;i++)
+				{
+					if(GameStart_List[i] != null && GameStart_List[i].Equals(value))
+					{
+						GameStart_List.RemoveAt(i);
+						break;
+					}
+				}
+			}
+		}
+	}
+	public static void GameStart_Dispatch()
+	{
+		if(GameStart_List == null || GameStart_List.Count <= 0)
+		{
+			return;
+		}
+		for(int i = 0;i < GameStart_List.Count;i++)
+		{
+			GameStart_List[i]?.Invoke();
+		}
+	}
+#endregion
+
+#region GameExit
+	private static List<VoidDelegate> GameExit_List;
+	public static event VoidDelegate GameExit_Listener
+	{
+		add
+		{
+			if(value != null)
+			{
+				if(GameExit_List == null)
+				{
+					GameExit_List = new List<VoidDelegate>(1);
+				}
+				GameExit_List.Add(value);
+			}
+		}
+		remove
+		{
+			if(value != null)
+			{
+				for(int i = 0;i<GameExit_List.Count;i++)
+				{
+					if(GameExit_List[i] != null && GameExit_List[i].Equals(value))
+					{
+						GameExit_List.RemoveAt(i);
+						break;
+					}
+				}
+			}
+		}
+	}
+	public static void GameExit_Dispatch()
+	{
+		if(GameExit_List == null || GameExit_List.Count <= 0)
+		{
+			return;
+		}
+		for(int i = 0;i < GameExit_List.Count;i++)
+		{
+			GameExit_List[i]?.Invoke();
 		}
 	}
 #endregion

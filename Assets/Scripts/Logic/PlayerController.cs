@@ -25,7 +25,7 @@ public class PlayerController : MonoBehaviour
     /// <summary>
     /// platform水平大小
     /// </summary>
-    private static Vector2 platformSize;
+    private static Vector2 platformSize = new Vector2(GameManager.PlatformPrefabSize.x, GameManager.PlatformPrefabSize.z);
     /// <summary>
     /// 角色失败的高度
     /// </summary>
@@ -52,12 +52,34 @@ public class PlayerController : MonoBehaviour
     private float cam2playerDistance;
 
     private bool isPress;
-    private bool isJump;
     private Vector3 startPoint, midPoint, endPoint;
     private float jumpTime = 0;
     private Transform cameraTrs;
 
     public void Init()
+    {
+        InitPlatform();
+        isPress = false;
+        jumpTime = 0;
+        InitPlayer();
+        jugeArea = new Rect[2] { new Rect(), new Rect() };
+        InitCameraPos();
+        CameraFocus();
+    }
+
+    void InitPlayer()
+    {
+        if (character == null)
+        {
+            var obj = Instantiate<GameObject>(Loader.LoadGame("Player"));
+            character = obj.transform;
+            character.SetParent(transform);
+            character.Reset();
+        }
+        character.position = new Vector3(0, 2f + character.localScale.y, 0);
+    }
+
+    void InitPlatform()
     {
         if (curPlatform != null)
         {
@@ -72,28 +94,7 @@ public class PlayerController : MonoBehaviour
         }
         Vector3 nextPos = GameManager.Inst.GetNextPlatformPos(Vector3.zero);
         nextPlatform = GameManager.Inst.SpawnPlatform(nextPos);
-
-        isPress = false;
-        isJump = false;
-        jumpTime = 0;
-        if (character == null)
-        {
-            var obj = Instantiate<GameObject>(Loader.LoadGame("Player"));
-            character = obj.transform;
-            character.SetParent(transform);
-            character.Reset();
-        }
-        character.position = new Vector3(0, 2f + character.localScale.y, 0);
-        jugeArea = new Rect[2] { new Rect(), new Rect() };
-        cameraTrs = Camera.main.transform;
-        InitCameraPos();
-        cam2playerDir = (cameraTrs.position - character.position).normalized;
-        cam2playerDistance = Vector3.Distance(character.position, cameraTrs.position);
-        CameraFocus();
-        platformSize.Set(GameManager.Inst.PlatformPrefabSize.x, GameManager.Inst.PlatformPrefabSize.z);
-        jugeArea = new Rect[2] { new Rect(), new Rect() };//第0个代表现在的platform，第1个代表下一个platform
     }
-
 
     #region OnPress
     void PlatformDown()
@@ -141,14 +142,14 @@ public class PlayerController : MonoBehaviour
         if (!GameManager.CanControll)
             return;
 
-        if (Input.GetMouseButtonDown(0))
+        if (Panel_Game.touch.IsDown&&UIManager.CanTouch)
         {
             RefreshThreePoint();
             GetCurrentArea();
             GetNextArea();
         }
 
-        if (Input.GetMouseButton(0))
+        if (Panel_Game.touch.IsHold&&UIManager.CanTouch)
         {
             PlatformDown();
             isPress = true;
@@ -156,6 +157,7 @@ public class PlayerController : MonoBehaviour
         }
         else if(isPress)
         {
+            UIManager.CanTouch = false;
             PlatformUp();
             if (!isPress)
             {
@@ -204,7 +206,6 @@ public class PlayerController : MonoBehaviour
     {
         float distance = Vector3.Distance(endPoint, startPoint);
         jumpTime =  distance/ JumpHorizontalSpeed;
-        GameManager.CanControll = false;
         DOTween.To((t) =>
         {
             SetCharacterCurveMove(t);
@@ -249,15 +250,16 @@ public class PlayerController : MonoBehaviour
                 Vector3 nextPos = GameManager.Inst.GetNextPlatformPos(curPlatform.position);
                 nextPlatform = GameManager.Inst.SpawnPlatform(nextPos);
                 CameraFocusJog();
-                EventHandler.ScorePlus_Dispatch(character);
                 EventHandler.ScoreTween_Dispatch(5);
             }
             GameManager.CanControll = true;
         }
         else
         {
+            GameManager.CanControll = false;
             PlayerFall(() => { UIManager.OpenUI<Pop_Fail>(UIPanel.Fail); });
         }
+        UIManager.CanTouch = true;
     }
 
     void PlayerFall(System.Action callback)
@@ -319,8 +321,14 @@ public class PlayerController : MonoBehaviour
 
     void InitCameraPos()
     {
+        if (cameraTrs==null)
+        {
+            cameraTrs = Camera.main.transform;
+        }
         Vector3 pos = new Vector3(10, 13, -6);
         cameraTrs.position = pos;
+        cam2playerDir = (pos - character.position).normalized;
+        cam2playerDistance = Vector3.Distance(character.position, pos);
     }
     #endregion
 

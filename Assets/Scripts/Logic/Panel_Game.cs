@@ -3,35 +3,33 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using DG.Tweening;
+using UnityEngine.EventSystems;
 
 public class Panel_Game : UIBase
 {
     private CanvasGroup canvasGroup;
-    private Text score, moveScore;
+    private Text score;
     private Button exitBtn;
-    private const string scoreText = "Score:{0}";
-    private const string plusSocreText = "+{0}";
+    public static TouchListener touch = null;
 
     protected override void Awake()
     {
         base.Awake();
         canvasGroup = GetComponent<CanvasGroup>();
         score = transform.Find("Score").GetComponent<Text>();
-        moveScore = transform.Find("MoveScore").GetComponent<Text>();
+        score.text = DatabaseMgr.Score.ToString();
         exitBtn = transform.Find("ExitBtn").GetComponent<Button>();
         exitBtn.AddListener(() =>
         {
             UIManager.CloseUI(UIPanel.Game);
+            UIManager.OpenUI<Panel_Main>(UIPanel.Main);
         });
-        score.text = string.Format(scoreText, 0);
-        moveScore.gameObject.SetActive(false);
-
-        EventHandler.ScorePlus_Listener += GetScore;
-        EventHandler.ScoreTween_Listener += ScoreNumberTween;
+        touch = transform.Find("Touch").RequireComponent<TouchListener>();
     }
     public override void Open()
     {
         base.Open();
+        EventHandler.ScoreTween_Listener += ScoreNumberTween;
         canvasGroup.SetFade(0);
         UIManager.CanTouch = false;
         DOTween.To((t) =>
@@ -43,37 +41,18 @@ public class Panel_Game : UIBase
     public override void Close()
     {
         base.Close();
+        EventHandler.ScoreTween_Listener -= ScoreNumberTween;
         DestroyImmediate(gameObject);
-    }
-
-    private void GetScore(Transform player)
-    {
-        Vector2 scorePos = UnityExtension.World2UIPos(player.position, GetComponent<RectTransform>());
-        Vector2 offset = new Vector2(40, 40);
-        scorePos += offset;
-        moveScore.gameObject.SetActive(true);
-        moveScore.rectTransform.localPosition = scorePos;
-        moveScore.SetFade(1);
-        DOTween.To((t) =>
-        {
-            moveScore.rectTransform.localPosition = new Vector2(scorePos.x, scorePos.y + 40f * t);
-            moveScore.SetFade(moveScore.color.a - 1 * t);
-        }, 0f, 1f, 0.5f).onComplete = () => moveScore.gameObject.SetActive(false);
     }
 
     private void ScoreNumberTween(int plusScore)
     {
-        int nowSocre = DatabaseMgr.Score;
-        DOTween.To((t) =>
-        {
-            score.text = string.Format(scoreText, Mathf.FloorToInt(t));
-        }, nowSocre, nowSocre+plusScore, 0.3f);
-        DatabaseMgr.Score = nowSocre+plusScore;
-    }
-
-    private void OnDisable()
-    {
-        EventHandler.ScorePlus_Listener -= GetScore;
-        EventHandler.ScoreTween_Listener -= ScoreNumberTween;
+        int num = DatabaseMgr.Score + plusScore;
+        DatabaseMgr.Score = num;
+        score.text = num.ToString();
+        Sequence seq = DOTween.Sequence();
+        seq.Append(score.transform.DOScale(1.3f, 0.2f));
+        seq.Append(score.transform.DOScale(1f, 0.3f));
+        seq.Play();
     }
 }

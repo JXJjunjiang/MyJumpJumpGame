@@ -14,7 +14,7 @@ public class Panel_Main : UIBase
         startBtn.AddListener(()=>
         {
             UIManager.OpenUI<Panel_Game>(UIPanel.Game);
-            GameManager.Inst.GameStart();
+            EventHandler.GameStart_Dispatch();
         });
         settingBtn = transform.Find("SettingBtn").GetComponent<Button>();
         settingBtn.AddListener(() =>

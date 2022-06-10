@@ -89,11 +89,6 @@ public class AudioManager : MonoSingleton<AudioManager>,IMgrInit
         return obj.RequireComponent<AudioSource>();
     }
 
-    void OnDisable()
-    {
-        UnInit();
-    }
-
     public void UnInit()
     {
     }

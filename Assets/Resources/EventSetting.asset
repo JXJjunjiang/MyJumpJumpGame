@@ -13,12 +13,14 @@ MonoBehaviour:
   m_Name: EventSetting
   m_EditorClassIdentifier: 
   types:
-  - typeName: Transform
-    typeDelegate: TransformDelegate(Transform parameters)
   - typeName: Int
     typeDelegate: IntDelegate(int parameters)
+  - typeName: Void
+    typeDelegate: VoidDelegate()
   items:
-  - eventName: ScorePlus
-    typeName: Transform
   - eventName: ScoreTween
     typeName: Int
+  - eventName: GameStart
+    typeName: Void
+  - eventName: GameExit
+    typeName: Void
