@@ -6,69 +6,139 @@ using DG.Tweening;
 
 public class GameManager : MonoSingleton<GameManager>,IMgrInit
 {
-    private const string PlatformPrefabName = "Platform";
-    public readonly Vector3 PlatformPrefabSize = new Vector3(3f, 2f, 3f);
+    /// <summary>
+    /// 跳跃平台预制体名称
+    /// </summary>
+    private static string PlatformPrefabName = "Platform";
+    /// <summary>
+    /// 跳跃平台预制体尺寸
+    /// </summary>
+    public static Vector3 PlatformPrefabSize = new Vector3(3f, 2f, 3f);
     /// <summary>
     /// 生成平台在X轴上的间隔
     /// </summary>
-    private readonly Vector2 ClampSpawnX = new Vector2(-10f, -5f);
+    private static Vector2 ClampSpawnX = new Vector2(-10f, -5f);
     /// <summary>
     /// 生成平台在Z轴上的间隔
     /// </summary>
-    private readonly Vector2 ClampSpawnZ = new Vector2(5f, 10f);
-    private readonly float SpawnY = 1f;
+    private static Vector2 ClampSpawnZ = new Vector2(5f, 10f);
+    /// <summary>
+    /// 平台Y轴位置
+    /// </summary>
+    private static float SpawnY = 1f;
+    /// <summary>
+    /// 平台对象池的最大容量
+    /// </summary>
+    private const int PoolMaxItemsCount = 5;
 
     private Transform gameRoot = null;
     private GameObject platformPrefab = null;
     private Transform platformRoot = null;
-    private List<Transform> spawnPlatform;
+    private Transform playerRoot = null;
+    private Queue<Transform> spawnPlatforms;
+    private int platformIndex = 0;
 
-    protected override void Awake ()
+    private static bool _isGameEnd = false;
+    /// <summary>
+    /// 游戏是否结束(主角死亡)
+    /// </summary>
+    public static bool IsGameEnd
     {
-        base.Awake();
-        Init();
-        EventDispatcher.Attach("StartGame", StartGame);
+        get => _isGameEnd;
+        set => _isGameEnd = value;
     }
+
+    private static bool _canControll;
+    /// <summary>
+    /// 是否可控制
+    /// </summary>
+    public static bool CanControll
+    {
+        get => _canControll;
+        set => _canControll = value;
+    }
+
 
     public void Init()
     {
-        gameRoot = Instantiate<Transform>(Loader.LoadPrefab("Game").transform);
-        platformPrefab = Loader.LoadPrefab(PlatformPrefabName);
+        gameRoot = Instantiate<Transform>(Loader.LoadGame("Game").transform);
+        gameRoot.Reset();
+        platformPrefab = Loader.LoadGame(PlatformPrefabName);
         platformRoot = gameRoot.Find("PlatformRoot");
-        spawnPlatform = new List<Transform>();
+        spawnPlatforms = new Queue<Transform>(PoolMaxItemsCount);
+        EventHandler.GameStart_Listener += InitData;
+        EventHandler.GameStart_Listener += InitPlayer;
     }
 
-    void StartGame(EventArgs args)
+    private void InitData()
     {
-        /*生成一个平台，主角从天而降，落稳后再次生成另一个新平台*/
-        SpawnPlatform(Vector3.zero);
+        _isGameEnd = false;
+        _canControll = false;
+        platformIndex = 0;
+        while (spawnPlatforms.Count>0)
+        {
+            DestroyImmediate(spawnPlatforms.Dequeue().gameObject);
+        }
+        spawnPlatforms.Clear();
     }
 
-    /// <summary>
-    /// 生成跳跃平台
-    /// </summary>
-    /// <param name="spawnPos"></param>
-    /// <returns></returns>
-    public JumpTrs GeneratePlatform(Transform prePlatform)
+    private void InitPlayer()
     {
-        Vector3 spawnPos = prePlatform == null ? Vector3.zero : GetNextPlatformPos(prePlatform.localPosition);
-        Transform result = SpawnPlatform(spawnPos);
-        return new JumpTrs(SearchSpawnList(prePlatform.name), result);
+        if (playerRoot == null)
+        {
+            GameObject obj = new GameObject("PlayerRoot");
+            playerRoot = obj.transform;
+            playerRoot.SetParent(gameRoot);
+        }
+        playerRoot.Reset();
+        var controller = playerRoot.RequireComponent<PlayerController>();
+        controller.Uninit();
+        controller.Init();
+    }
+
+    private void GameExit()
+    {
+
     }
 
     public Transform SpawnPlatform(Vector3 pos)
     {
-        Transform result = Instantiate<Transform>(platformPrefab.transform, platformRoot);
-        result.name = PlatformPrefabName + spawnPlatform.Count.ToString();
-        spawnPlatform.Add(result);
+        Transform result = PoolDecollect();
+        result.SetParent(platformRoot);
+        result.name = string.Format("{0}[{1}]", PlatformPrefabName, platformIndex);
+        ++platformIndex;
         result.Reset();
         result.localScale = PlatformPrefabSize;
         result.localPosition = new Vector3(pos.x, -SpawnY, pos.z);
-        result.DOLocalMoveY(SpawnY, 0.2f);
+        _canControll = false;
+        result.DOLocalMoveY(SpawnY, 0.2f).onComplete = () => _canControll = true;//生成平台过程中，不允许玩家操作
         return result;
     }
 
-    Vector3 GetNextPlatformPos(Vector3 prePos)
+    public void PoolCollect(Transform platform)
+    {
+        if (spawnPlatforms!=null)
+        {
+            spawnPlatforms.Enqueue(platform);
+        }
+    }
+
+    public Transform PoolDecollect()
+    {
+        Transform result = null;
+        //if (spawnPlatforms.Count>=PoolMaxItemsCount)
+        //{
+        //    result = spawnPlatforms.Dequeue();
+        //}
+        //else
+        //{
+            result = Instantiate<Transform>(platformPrefab.transform);
+            spawnPlatforms.Enqueue(result);
+        //}
+        return result;
+    }
+
+    public Vector3 GetNextPlatformPos(Vector3 prePos)
     {
         Vector3 result = Vector3.zero;
         float x = 0;
@@ -85,9 +155,9 @@ public class GameManager : MonoSingleton<GameManager>,IMgrInit
         return result;
     }
 
-    Transform SearchSpawnList(string name)
+    public Transform SearchPool(string name)
     {
-        using (var e=spawnPlatform.GetEnumerator())
+        using (var e=spawnPlatforms.GetEnumerator())
         {
             while (e.MoveNext())
             {
@@ -100,33 +170,9 @@ public class GameManager : MonoSingleton<GameManager>,IMgrInit
         return null;
     }
 
-    void OnDisable()
-    {
-        UnInit();
-    }
-
     public void UnInit()
     {
-        
+        EventHandler.GameStart_Listener -= InitData;
+        EventHandler.GameStart_Listener -= InitPlayer;
     }
-}
-public class JumpTrs
-{
-    public Transform currentTrs;
-    public Transform nextTrs;
-    public JumpTrs(Transform cur,Transform next)
-    {
-        this.currentTrs = cur;
-        this.nextTrs = next;
-    }
-    private JumpTrs()
-    {
-
-    }
-}
-public interface IMgrInit
-{
-    void Init();
-
-    void UnInit();
 }

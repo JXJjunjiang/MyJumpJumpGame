@@ -44,9 +44,32 @@ public static class UnityExtension
         canvas.alpha = alpha;
     }
 
+    public static void SetFade(this Text text,float alpha)
+    {
+        Color color = text.color;
+        color.a = alpha;
+        text.color = color;
+    }
+
+    public static void SetFade(this Image img,float alpha)
+    {
+        Color color = img.color;
+        color.a = alpha;
+        img.color = color;
+    }
+
     public static void AddListener(this Button btn,Action callback)
     {
         btn.onClick.RemoveAllListeners();
         btn.onClick.AddListener(() => callback?.Invoke());
+    }
+
+    public static Vector3 World2UIPos(Vector3 worldPos,RectTransform uiParent)
+    {
+        //var screenPos = UIManager.UICamera.WorldToScreenPoint(worldPos);
+        var screenPos = Camera.main.WorldToScreenPoint(worldPos);
+        Vector2 uiPos = Vector2.zero;
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(uiParent, screenPos, UIManager.UICamera, out uiPos);
+        return uiPos;
     }
 }

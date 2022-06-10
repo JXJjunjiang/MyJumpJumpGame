@@ -9,6 +9,7 @@ public class UIManager : MonoSingleton<UIManager>,IMgrInit
     private static Dictionary<UILayer, Transform> nodes;
     private static Dictionary<UILayer, Stack<UIBase>> openUIStacks;
     private Transform uiRoot;
+    private static Camera uiCamera;
     private static Image blockTouchImg;
     public static bool CanTouch
     {
@@ -16,10 +17,10 @@ public class UIManager : MonoSingleton<UIManager>,IMgrInit
         set => blockTouchImg.raycastTarget = !value;
     }
 
-    protected override void Awake()
+    public static Camera UICamera
     {
-        base.Awake();
-        Init();
+        get => uiCamera;
+        set => uiCamera = value;
     }
 
     public void Init()
@@ -31,9 +32,10 @@ public class UIManager : MonoSingleton<UIManager>,IMgrInit
             {UILayer.Pop,new Stack<UIBase>() },
             {UILayer.Top,new Stack<UIBase>() }
         };
-        uiRoot = Instantiate<Transform>(Loader.LoadPrefab("UI").transform, transform);
+        uiRoot = Instantiate<Transform>(Loader.LoadUI("UI").transform, transform);
         blockTouchImg = uiRoot.Find("Canvas/BlockTouchImg").GetComponent<Image>();
         blockTouchImg.raycastTarget = false;
+        uiCamera = uiRoot.Find("UICamera").GetComponent<Camera>();
         nodes = new Dictionary<UILayer, Transform>()
         {
             { UILayer.Bottom,uiRoot.Find("Canvas/Bottom")},
@@ -46,7 +48,7 @@ public class UIManager : MonoSingleton<UIManager>,IMgrInit
     public static void OpenUI<T>(UIPanel panel) where T:UIBase
     {
         var uiInfo = DatabaseMgr.GetUIInfo(panel);
-        var obj = Instantiate<GameObject>(Loader.LoadPrefab(uiInfo.path));
+        var obj = Instantiate<GameObject>(Loader.LoadUI(uiInfo.path));
         obj.transform.SetParent(nodes[uiInfo.layer]);
         obj.GetComponent<RectTransform>().Reset();
         var uiBase = obj.RequireComponent<T>();

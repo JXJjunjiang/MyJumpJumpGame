@@ -2,61 +2,101 @@
 using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
+using DG.Tweening.Plugins.Options;
 
-public class Controll : MonoBehaviour
+public class PlayerController : MonoBehaviour
 {
+    /// <summary>
+    /// platform压缩与弹起的高度限制
+    /// </summary>
     private const float MinScaleY = 0.2f, MaxScaleY = 2f;
+    /// <summary>
+    /// platform压缩与弹起的速度
+    /// </summary>
     private const float YDownSpeed = 0.1f, YUpSpeed = 0.3f;
+    /// <summary>
+    /// 角色跳起的最高高度
+    /// </summary>
     private const float JumpY = 8f;
-    private const float JumpHorizontalSpeed = 15f;
-    private static Vector2 platformSize;
+    /// <summary>
+    /// 角色跳起的横向速度
+    /// </summary>
+    private const float JumpHorizontalSpeed = 25f;
+    /// <summary>
+    /// platform水平大小
+    /// </summary>
+    private static Vector2 platformSize = new Vector2(GameManager.PlatformPrefabSize.x, GameManager.PlatformPrefabSize.z);
+    /// <summary>
+    /// 角色失败的高度
+    /// </summary>
     private const float FailedPosY = 1f;
-
+    /// <summary>
+    /// 当前plat和下一个plat
+    /// </summary>
     private Transform curPlatform, nextPlatform;
+    /// <summary>
+    /// 落点判断区域
+    /// </summary>
     private Rect[] jugeArea;
+    /// <summary>
+    /// 角色
+    /// </summary>
     private Transform character;
-
+    /// <summary>
+    /// 相机到角色的方向
+    /// </summary>
     private Vector3 cam2playerDir;
+    /// <summary>
+    /// 相机到角色的距离
+    /// </summary>
     private float cam2playerDistance;
 
-    bool isPress;
-    bool isJump;
-    bool canControll;
-    Vector3 startPoint, midPoint, endPoint;
-    float jumpTime = 0;
+    private bool isPress;
+    private Vector3 startPoint, midPoint, endPoint;
+    private float jumpTime = 0;
+    private Transform cameraTrs;
 
-    private void Start()
+    public void Init()
     {
-        curPlatform = GameObject.Find("Platform").transform;
-        nextPlatform = null;
-        character = GameObject.Find("Player").transform;
-        platformSize.Set(GameManager.Inst.PlatformPrefabSize.x, GameManager.Inst.PlatformPrefabSize.z);
-        jugeArea = new Rect[2] { new Rect(), new Rect() };//第0个代表现在的platform，第1个代表下一个platform
-
-        GameStart();
+        InitPlatform();
+        isPress = false;
+        jumpTime = 0;
+        InitPlayer();
+        jugeArea = new Rect[2] { new Rect(), new Rect() };
+        InitCameraPos();
+        CameraFocus();
     }
 
-    void GameStart()
+    void InitPlayer()
     {
-        Spawn(curPlatform);
-        canControll = true;
-        cam2playerDir = (Camera.main.transform.position - character.position).normalized;
-        cam2playerDistance = Vector3.Distance(character.position, Camera.main.transform.position);
-        Debug.Log(character.position + cam2playerDir * cam2playerDistance);
+        if (character == null)
+        {
+            var obj = Instantiate<GameObject>(Loader.LoadGame("Player"));
+            character = obj.transform;
+            character.SetParent(transform);
+            character.Reset();
+        }
+        character.position = new Vector3(0, 2f + character.localScale.y, 0);
     }
 
-    void GameEnd()
+    void InitPlatform()
     {
-        canControll = false;
+        if (curPlatform != null)
+        {
+            DestroyImmediate(curPlatform.gameObject);
+            curPlatform = null;
+        }
+        curPlatform = GameManager.Inst.SpawnPlatform(Vector3.zero);
+        if (nextPlatform != null)
+        {
+            DestroyImmediate(nextPlatform.gameObject);
+            nextPlatform = null;
+        }
+        Vector3 nextPos = GameManager.Inst.GetNextPlatformPos(Vector3.zero);
+        nextPlatform = GameManager.Inst.SpawnPlatform(nextPos);
     }
 
-    void Spawn(Transform next)
-    {
-        JumpTrs jt = GameManager.Inst.GeneratePlatform(next);
-        curPlatform = jt.currentTrs;
-        nextPlatform = jt.nextTrs;
-    }
-
+    #region OnPress
     void PlatformDown()
     {
         //设置scale
@@ -70,7 +110,6 @@ public class Controll : MonoBehaviour
 
     void PlatformUp()
     {
-        //设置scale
         Vector3 scale = curPlatform.localScale;
         float scaleY = Mathf.Clamp(scale.y + YUpSpeed, MinScaleY, MaxScaleY);
         scale.Set(scale.x, scaleY, scale.z);
@@ -80,15 +119,14 @@ public class Controll : MonoBehaviour
         {
             isPress = false;
         }
-        //设置position
         SetPlatformYPos(scale);
     }
 
     void PlayerFollow()
     {
-        Vector3 pos = character.localPosition;
+        Vector3 pos = character.position;
         pos.Set(pos.x, curPlatform.localScale.y + character.localScale.y, pos.z);
-        character.localPosition = pos;
+        character.position = pos;
     }
 
     void SetPlatformYPos(Vector3 scale)
@@ -97,20 +135,21 @@ public class Controll : MonoBehaviour
         pos.Set(pos.x, scale.y / 2f, pos.z);
         curPlatform.localPosition = pos;
     }
+    #endregion
 
     private void Update()
     {
-        if (!canControll)
+        if (!GameManager.CanControll)
             return;
 
-        if (Input.GetMouseButtonDown(0))//按下鼠标时刷新贝塞尔的三个点
+        if (Panel_Game.touch.IsDown&&UIManager.CanTouch)
         {
             RefreshThreePoint();
             GetCurrentArea();
             GetNextArea();
         }
 
-        if (Input.GetMouseButton(0))
+        if (Panel_Game.touch.IsHold&&UIManager.CanTouch)
         {
             PlatformDown();
             isPress = true;
@@ -118,6 +157,7 @@ public class Controll : MonoBehaviour
         }
         else if(isPress)
         {
+            UIManager.CanTouch = false;
             PlatformUp();
             if (!isPress)
             {
@@ -166,7 +206,6 @@ public class Controll : MonoBehaviour
     {
         float distance = Vector3.Distance(endPoint, startPoint);
         jumpTime =  distance/ JumpHorizontalSpeed;
-        canControll = false;
         DOTween.To((t) =>
         {
             SetCharacterCurveMove(t);
@@ -202,12 +241,30 @@ public class Controll : MonoBehaviour
     #region JumpFinish
     void OnJumpFinish()
     {
+        /*只要在区域内，都会重置控制权；但还在原来的平台上就不会生成，也不会移动相机*/
         if (IsInArea())
         {
-            Spawn(nextPlatform);
-            canControll = true;
-            CameraFocus();
+            if (!IsInSameArea())
+            {
+                curPlatform = GameManager.Inst.SearchPool(nextPlatform.name);
+                Vector3 nextPos = GameManager.Inst.GetNextPlatformPos(curPlatform.position);
+                nextPlatform = GameManager.Inst.SpawnPlatform(nextPos);
+                CameraFocusJog();
+                EventHandler.ScoreTween_Dispatch(5);
+            }
+            GameManager.CanControll = true;
         }
+        else
+        {
+            GameManager.CanControll = false;
+            PlayerFall(() => { UIManager.OpenUI<Pop_Fail>(UIPanel.Fail); });
+        }
+        UIManager.CanTouch = true;
+    }
+
+    void PlayerFall(System.Action callback)
+    {
+        character.DOLocalMoveY(1, 0.5f).onComplete = () => callback?.Invoke();
     }
     #endregion
 
@@ -242,23 +299,41 @@ public class Controll : MonoBehaviour
         return false;
     }
 
+    bool IsInSameArea()
+    {
+        return jugeArea[0].Contains(new Vector2(endPoint.x, endPoint.z));
+    }
+
     #endregion
 
     #region Camera
+    void CameraFocusJog()
+    {
+        Vector3 camEndPos = character.position + cam2playerDistance * cam2playerDir;
+        cameraTrs.DOMove(camEndPos, 0.5f);
+    }
+
     void CameraFocus()
     {
         Vector3 camEndPos = character.position + cam2playerDistance * cam2playerDir;
-        DOTween.To((t) =>
-        {
-            CameraMove(camEndPos, t);
-        }, 0, 1, 0.5f);
+        cameraTrs.position = camEndPos;
     }
 
-    void CameraMove(Vector3 camEndPos,float t)
+    void InitCameraPos()
     {
-        Vector3 dir = (camEndPos - Camera.main.transform.position).normalized;
-        float distance = Vector3.Distance(camEndPos, Camera.main.transform.position);
-        Camera.main.transform.position += dir * distance * t;
+        if (cameraTrs==null)
+        {
+            cameraTrs = Camera.main.transform;
+        }
+        Vector3 pos = new Vector3(10, 13, -6);
+        cameraTrs.position = pos;
+        cam2playerDir = (pos - character.position).normalized;
+        cam2playerDistance = Vector3.Distance(character.position, pos);
     }
     #endregion
+
+    public void Uninit()
+    {
+        
+    }
 }
