@@ -7,13 +7,17 @@ using DG.Tweening.Plugins.Options;
 public class PlayerController : MonoBehaviour
 {
     /// <summary>
+    /// Q弹的最大高度
+    /// </summary>
+    private readonly Vector3 BumpMaxOffset = new Vector3(0, 0.2f, 0);
+    /// <summary>
     /// platform压缩与弹起的高度限制
     /// </summary>
-    private const float MinScaleY = 0.4f, MaxScaleY = 2f;
+    private const float MaxDetalY = 0.3f;
     /// <summary>
     /// platform压缩与弹起的速度
     /// </summary>
-    private const float YDownSpeed = 0.01f, YUpSpeed = 0.3f;
+    private const float YDownSpeed = 0.005f;
     /// <summary>
     /// 角色跳起的最高高度
     /// </summary>
@@ -56,6 +60,7 @@ public class PlayerController : MonoBehaviour
     private Vector3 startPoint, midPoint, endPoint;
     private float jumpTime = 0;
     private Transform cameraTrs;
+    private Vector3 originPos;
 
     public void Init()
     {
@@ -77,7 +82,7 @@ public class PlayerController : MonoBehaviour
             character.SetParent(transform);
             character.Reset();
         }
-        character.position = new Vector3(0, 2f + character.localScale.y, 0);
+        character.position = new Vector3(0, curPlatform.localScale.y + character.localScale.y, 0);
     }
 
     void InitPlatform()
@@ -98,47 +103,32 @@ public class PlayerController : MonoBehaviour
     }
 
     #region OnPress
-    void PlatformDown()
+    void PlatformPressDown()
     {
-        //设置scale
-        Vector3 scale = curPlatform.localScale;
-        float scaleY = Mathf.Clamp(scale.y - YDownSpeed, MinScaleY, MaxScaleY);
-        scale.Set(scale.x, scaleY, scale.z);
-        curPlatform.localScale = scale;
-        //设置position
-        SetPlatformYPos(scale);
+        Vector3 pos = curPlatform.localPosition;
+        float posY = Mathf.Clamp(pos.y - YDownSpeed, originPos.y - MaxDetalY, pos.y);
+        pos.Set(pos.x, posY, pos.z);
+        curPlatform.localPosition = pos;
     }
 
-    void PlatformUp()
+    void PlatformPressUp()
     {
         isUping = true;
-        float y = Mathf.Abs(curPlatform.localScale.y - MaxScaleY);
-        Vector3 scale = curPlatform.localScale;
-        DOTween.To((t) =>
+        Sequence seq = DOTween.Sequence();
+        seq.Append(curPlatform.DOLocalMove(originPos + BumpMaxOffset, 0.2f));
+        seq.Append(curPlatform.DOLocalMove(originPos - BumpMaxOffset / 2f, 0.1f));
+        seq.Append(curPlatform.DOLocalMove(originPos, 0.1f));
+        seq.Play().onComplete = () =>
         {
-            Vector3 newScale = scale;
-            newScale.Set(scale.x, scale.y + y * t, scale.z);
-            curPlatform.localScale = newScale;
-            SetPlatformYPos(newScale);
-        }, 0, 1, 0.3f).SetEase(Ease.InOutBack,3f).onComplete = () => 
-        {
-            curPlatform.localScale = new Vector3(platformSize.x, MaxScaleY, platformSize.y);
             isUping = false;
         };
     }
 
     void PlayerFollow()
     {
-        Vector3 pos = character.position;
-        pos.Set(pos.x, curPlatform.localScale.y + character.localScale.y, pos.z);
-        character.position = pos;
-    }
-
-    void SetPlatformYPos(Vector3 scale)
-    {
-        Vector3 pos = curPlatform.localPosition;
-        pos.Set(pos.x, scale.y / 2f, pos.z);
-        curPlatform.localPosition = pos;
+        //PlayerPos=platform高度/2f+人物高度/2f
+        float platY = curPlatform.localPosition.y + curPlatform.localScale.y / 2f + character.localScale.y;//TODO 这个模型不知道为什么需要多加0.5，所以暂时不/2
+        character.localPosition = new Vector3(character.localPosition.x, platY, character.localPosition.z);
     }
     #endregion
 
@@ -152,11 +142,12 @@ public class PlayerController : MonoBehaviour
             RefreshThreePoint();
             GetCurrentArea();
             GetNextArea();
+            originPos = curPlatform.localPosition;
         }
 
         if (Panel_Game.touch.IsHold&&UIManager.CanTouch)
         {
-            PlatformDown();
+            PlatformPressDown();
             isPress = true;
             SetThreePoint();
         }
@@ -166,9 +157,9 @@ public class PlayerController : MonoBehaviour
             UIManager.CanTouch = false;
             if (!isUping)
             {
-                PlatformUp();
+                PlatformPressUp();
             }
-            if (Mathf.Abs(MaxScaleY - curPlatform.localScale.y) <= 0.1f)
+            if (Mathf.Abs(curPlatform.localPosition.y-originPos.y)<=0.1f)
             {
                 isPress = false;
             }
@@ -201,7 +192,7 @@ public class PlayerController : MonoBehaviour
         endPoint = character.position + direction;
         float midX = startPoint.x+(endPoint.x - startPoint.x) / 2f;
         float midZ = startPoint.z+(endPoint.z - startPoint.z) / 2f;
-        midPoint.Set(midX, JumpY, midZ);
+        midPoint.Set(midX, endPoint.y + JumpY, midZ);
     }
     void SetThreePoint()
     {
@@ -210,7 +201,7 @@ public class PlayerController : MonoBehaviour
         endPoint += (direction * 0.1f);
         float midX = startPoint.x + (endPoint.x - startPoint.x) / 2f;
         float midZ = startPoint.z + (endPoint.z - startPoint.z) / 2f;
-        midPoint.Set(midX, JumpY, midZ);
+        midPoint.Set(midX, endPoint.y + JumpY, midZ);
     }
     #endregion
 
@@ -263,7 +254,7 @@ public class PlayerController : MonoBehaviour
                 Vector3 nextPos = GameManager.Inst.GetNextPlatformPos(curPlatform.position);
                 nextPlatform = GameManager.Inst.SpawnPlatform(nextPos);
                 CameraFocusJog();
-                EventHandler.ScoreTween_Dispatch(5);
+                EventHandler.ScoreTween_Dispatch(1);
             }
             GameManager.CanControll = true;
         }
@@ -338,7 +329,7 @@ public class PlayerController : MonoBehaviour
         {
             cameraTrs = Camera.main.transform;
         }
-        Vector3 pos = new Vector3(10, 13, -6);
+        Vector3 pos = new Vector3(15f, 15, -13);
         cameraTrs.position = pos;
         cam2playerDir = (pos - character.position).normalized;
         cam2playerDistance = Vector3.Distance(character.position, pos);

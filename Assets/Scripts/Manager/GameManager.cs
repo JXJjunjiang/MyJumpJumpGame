@@ -13,7 +13,7 @@ public class GameManager : MonoSingleton<GameManager>,IMgrInit
     /// <summary>
     /// 跳跃平台预制体尺寸
     /// </summary>
-    public static Vector3 PlatformPrefabSize = new Vector3(3f, 2f, 3f);
+    public static Vector3 PlatformPrefabSize = new Vector3(3f, 10f, 3f);
     /// <summary>
     /// 生成平台在X轴上的间隔
     /// </summary>
@@ -25,7 +25,7 @@ public class GameManager : MonoSingleton<GameManager>,IMgrInit
     /// <summary>
     /// 平台Y轴位置
     /// </summary>
-    private static float SpawnY = 1f;
+    private static float SpawnY = PlatformPrefabSize.y / 2f;
     /// <summary>
     /// 平台对象池的最大容量
     /// </summary>
@@ -151,7 +151,7 @@ public class GameManager : MonoSingleton<GameManager>,IMgrInit
         {
             z = Random.Range(ClampSpawnZ.x, ClampSpawnZ.y);
         }
-        result.Set(prePos.x + x, SpawnY, prePos.z + z);
+        result.Set(prePos.x + x, SpawnY + DatabaseMgr.Score, prePos.z + z);
         return result;
     }
 
