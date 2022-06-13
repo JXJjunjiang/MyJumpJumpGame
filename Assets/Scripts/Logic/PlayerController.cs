@@ -255,11 +255,21 @@ public class PlayerController : MonoBehaviour
                 nextPlatform = GameManager.Inst.SpawnPlatform(nextPos);
                 CameraFocusJog();
                 EventHandler.ScoreTween_Dispatch(1);
+                //等待分数动画执行完成后
+                if (DatabaseMgr.IsMatchAnyHeight())
+                {
+                    UIManager.OpenUI<Panel_HeightTips>(UIPanel.HeightTips);
+                }
             }
             GameManager.CanControll = true;
         }
         else
         {
+            //TODO 判断三种情况
+            //前倾
+            //后倾
+            //落点在平台之外
+
             GameManager.CanControll = false;
             PlayerFall(() => { UIManager.OpenUI<Pop_Fail>(UIPanel.Fail); });
         }

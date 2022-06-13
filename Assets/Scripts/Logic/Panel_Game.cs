@@ -31,6 +31,7 @@ public class Panel_Game : UIBase
         base.Open();
         EventHandler.ScoreTween_Listener += ScoreNumberTween;
         canvasGroup.SetFade(0);
+        score.text = DatabaseMgr.Score.ToString();
         UIManager.CanTouch = false;
         DOTween.To((t) =>
         {
@@ -52,7 +53,7 @@ public class Panel_Game : UIBase
         score.text = num.ToString();
         Sequence seq = DOTween.Sequence();
         seq.Append(score.transform.DOScale(1.3f, 0.2f));
-        seq.Append(score.transform.DOScale(1f, 0.3f));
+        seq.Append(score.transform.DOScale(1f, 0.2f));
         seq.Play();
     }
 }

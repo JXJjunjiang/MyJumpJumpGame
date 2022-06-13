@@ -39,9 +39,20 @@ public class DatabaseMgr : MonoSingleton<DatabaseMgr>,IMgrInit
             { UIPanel.MoreInfo,new UIInfo(UIPanel.MoreInfo,UILayer.Bottom,2,"MoreInfo") },
             { UIPanel.Setting,new UIInfo(UIPanel.Setting,UILayer.Bottom,2,"Setting") },
             { UIPanel.Game,new UIInfo(UIPanel.Game,UILayer.Bottom,1,"GameUI")},
-            {UIPanel.Fail,new UIInfo(UIPanel.Fail,UILayer.Pop,1,"GameFail") }
+            { UIPanel.Fail,new UIInfo(UIPanel.Fail,UILayer.Pop,1,"GameFail") },
+            { UIPanel.HeightTips,new UIInfo(UIPanel.HeightTips,UILayer.Window,1,"HeightTips") }
         };
         ReadData();
+    }
+
+    public static string GetHeightLabel()
+    {
+        return string.Empty;
+    }
+
+    public static bool IsMatchAnyHeight()
+    {
+        return false;
     }
 
     public static UIInfo GetUIInfo(UIPanel panel)
