@@ -40,12 +40,13 @@ public class TouchListener : MonoBehaviour,IPointerDownHandler,IPointerUpHandler
     public void OnPointerDown(PointerEventData eventData)
     {
         _isDown = true;
+        _isHold = false;
+        _pressTime = 0;
     }
 
     public void OnPointerUp(PointerEventData eventData)
     {
-        _pressTime = 0;
-        _isHold = false;
+        _isDown = false;
     }
 
     public void OnPointerEnter(PointerEventData eventData)
@@ -59,17 +60,16 @@ public class TouchListener : MonoBehaviour,IPointerDownHandler,IPointerUpHandler
 
     private void Update()
     {
-        if (_isDown)
+        if (_isDown&&!_isHold)
         {
             _pressTime += Time.unscaledDeltaTime;
             if (_pressTime >= jugeHoldTime)
             {
-                _isDown = false;
                 _isHold = true;
             }
         }
 
-        if (_isHold)
+        if (!_isDown&&_isHold)
         {
             _pressTime += Time.unscaledDeltaTime;
         }
