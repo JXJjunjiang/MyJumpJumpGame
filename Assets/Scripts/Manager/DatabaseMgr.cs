@@ -42,6 +42,7 @@ public class DatabaseMgr : MonoSingleton<DatabaseMgr>,IMgrInit
             { UIPanel.Fail,new UIInfo(UIPanel.Fail,UILayer.Pop,1,"GameFail") },
             { UIPanel.HeightTips,new UIInfo(UIPanel.HeightTips,UILayer.Window,1,"HeightTips") }
         };
+
         ReadData();
     }
 

@@ -21,15 +21,19 @@ public class PlayerController : MonoBehaviour
     private Transform cameraTrs;
     private Vector3 direction;
     private float speed;
+    private float curTime, MaxTime = 1.5f;
+    private float pressTime;
 
     public void Init()
     {
         InitPlatform();
-        speed = 1f;
+        speed = 10f;
         isJumping = false;
         InitPlayer();
         InitCameraPos();
         CameraFocus();
+        Panel_Game.touch.PointerDown += OnPressDown;
+        Panel_Game.touch.PointerUp += OnPressUp;
     }
 
     void InitPlayer()
@@ -41,6 +45,7 @@ public class PlayerController : MonoBehaviour
             character.SetParent(transform);
             character.Reset();
         }
+        characterRigi = character.GetComponent<Rigidbody>();
         character.position = new Vector3(0, curPlatform.localScale.y + character.localScale.y, 0);
     }
 
@@ -66,19 +71,23 @@ public class PlayerController : MonoBehaviour
         if (!GameManager.CanControll)
             return;
 
-        if (Panel_Game.touch.IsHold&&!Panel_Game.touch.IsDown&&!isJumping)
-        {
-            isJumping = true;
-            direction = (character.position - nextPlatform.position).normalized;
-            Jump(Panel_Game.touch.PressTime);
-        }
+    }
+
+    void OnPressDown()
+    {
+        pressTime = Time.unscaledTime;
+    }
+
+    void OnPressUp()
+    {
+        pressTime = Time.unscaledTime - pressTime;
+        direction = (nextPlatform.position - character.position+new Vector3(0,10,0)).normalized;
+        Jump(pressTime);
     }
 
     void Jump(float holdTime)
     {
         characterRigi.AddForce(direction * speed * holdTime, ForceMode.Impulse);
-        //TODO 持续检测rigidbody直到停止或者超过多少秒为止
-        StartCoroutine(CheckRigidbody());
     }
 
     #region JumpFinish
@@ -89,16 +98,16 @@ public class PlayerController : MonoBehaviour
 
     IEnumerator CheckRigidbody()
     {
-        while (true)
+        curTime = Time.unscaledTime;
+        while (Time.unscaledTime-curTime<MaxTime)
         {
             yield return new WaitForSecondsRealtime(0.1f);
-            if (Vector3.Distance( characterRigi.velocity,Vector3.zero)<=0.1f)
+            if (characterRigi.velocity==Vector3.zero)
             {
                 isJumping = false;
                 break;
             }
         }
-        //TODO
     }
     #endregion
 
@@ -130,6 +139,7 @@ public class PlayerController : MonoBehaviour
 
     public void Uninit()
     {
-        
+        Panel_Game.touch.PointerDown -= OnPressDown;
+        Panel_Game.touch.PointerUp -= OnPressUp;
     }
 }
