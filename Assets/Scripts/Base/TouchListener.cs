@@ -7,13 +7,29 @@ using UnityEngine.EventSystems;
 [RequireComponent(typeof(UnityEngine.UI.Image))]
 public class TouchListener : MonoBehaviour,IPointerDownHandler,IPointerUpHandler,IPointerEnterHandler,IPointerExitHandler
 {
-    public delegate void PointerDelegate();
-
     private Image _img;
     private float jugeHoldTime = 0.1f;
 
-    public event PointerDelegate PointerDown;
-    public event PointerDelegate PointerUp;
+    private bool _isDown;
+    public bool IsDown
+    {
+        get => _isDown;
+        set => _isDown = value;
+    }
+
+    private bool _isHold;
+    public bool IsHold
+    {
+        get => _isHold;
+        set => _isHold = value;
+    }
+
+    private float _pressTime;
+    public float PressTime
+    {
+        get => _pressTime;
+        set => _pressTime = value;
+    }
 
     private void Awake()
     {
@@ -23,12 +39,13 @@ public class TouchListener : MonoBehaviour,IPointerDownHandler,IPointerUpHandler
 
     public void OnPointerDown(PointerEventData eventData)
     {
-        PointerDown.Invoke();
+        _isDown = true;
     }
 
     public void OnPointerUp(PointerEventData eventData)
     {
-        PointerUp.Invoke();
+        _pressTime = 0;
+        _isHold = false;
     }
 
     public void OnPointerEnter(PointerEventData eventData)
@@ -38,5 +55,23 @@ public class TouchListener : MonoBehaviour,IPointerDownHandler,IPointerUpHandler
     public void OnPointerExit(PointerEventData eventData)
     {
 
+    }
+
+    private void Update()
+    {
+        if (_isDown)
+        {
+            _pressTime += Time.unscaledDeltaTime;
+            if (_pressTime >= jugeHoldTime)
+            {
+                _isDown = false;
+                _isHold = true;
+            }
+        }
+
+        if (_isHold)
+        {
+            _pressTime += Time.unscaledDeltaTime;
+        }
     }
 }

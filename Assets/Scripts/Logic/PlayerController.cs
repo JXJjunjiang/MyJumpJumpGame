@@ -2,12 +2,50 @@
 using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
+using DG.Tweening.Plugins.Options;
 
 public class PlayerController : MonoBehaviour
 {
+    /// <summary>
+    /// Q弹的最大高度
+    /// </summary>
+    private readonly Vector3 BumpMaxOffset = new Vector3(0, 0.2f, 0);
+    /// <summary>
+    /// platform压缩与弹起的高度限制
+    /// </summary>
+    private const float MinScaleY=0.7f, MaxScaleY = 1f;
+    /// <summary>
+    /// platform压缩与弹起的速度
+    /// </summary>
+    private const float YDownSpeed = 0.001f, YUpSpeed = 0.002f;
+    /// <summary>
+    /// 角色跳起的最高高度
+    /// </summary>
+    private const float JumpY = 8f;
+    /// <summary>
+    /// 角色跳起的横向速度
+    /// </summary>
+    private const float JumpHorizontalSpeed = 25f;
+    /// <summary>
+    /// platform水平大小
+    /// </summary>
+    private static Vector2 platformSize = new Vector2(GameManager.PlatformPrefabSize.x, GameManager.PlatformPrefabSize.z);
+    /// <summary>
+    /// 角色失败的高度
+    /// </summary>
+    private const float FailedPosY = 1f;
+    /// <summary>
+    /// 当前plat和下一个plat
+    /// </summary>
     private Transform curPlatform, nextPlatform;
+    /// <summary>
+    /// 落点判断区域
+    /// </summary>
+    private Rect[] jugeArea;
+    /// <summary>
+    /// 角色
+    /// </summary>
     private Transform character;
-    private Rigidbody characterRigi;
     /// <summary>
     /// 相机到角色的方向
     /// </summary>
@@ -17,23 +55,22 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     private float cam2playerDistance;
 
-    private bool isJumping;
+    private bool isPress;
+    private bool isUping;
+    private Vector3 startPoint, midPoint, endPoint;
+    private float jumpTime = 0;
     private Transform cameraTrs;
-    private Vector3 direction;
-    private float speed;
-    private float curTime, MaxTime = 1.5f;
-    private float pressTime;
+    private Vector3 originPos;
 
     public void Init()
     {
         InitPlatform();
-        speed = 10f;
-        isJumping = false;
+        isPress = false;
+        jumpTime = 0;
         InitPlayer();
+        jugeArea = new Rect[2] { new Rect(), new Rect() };
         InitCameraPos();
         CameraFocus();
-        Panel_Game.touch.PointerDown += OnPressDown;
-        Panel_Game.touch.PointerUp += OnPressUp;
     }
 
     void InitPlayer()
@@ -45,7 +82,6 @@ public class PlayerController : MonoBehaviour
             character.SetParent(transform);
             character.Reset();
         }
-        characterRigi = character.GetComponent<Rigidbody>();
         character.position = new Vector3(0, curPlatform.localScale.y + character.localScale.y, 0);
     }
 
@@ -66,49 +102,197 @@ public class PlayerController : MonoBehaviour
         nextPlatform = GameManager.Inst.SpawnPlatform(nextPos);
     }
 
+    #region OnPress
+    void CharacterPressDown()
+    {
+        Vector3 scale = character.localScale;
+        float scaleY = Mathf.Clamp(scale.y - YDownSpeed, MinScaleY, MaxScaleY);
+        scale.Set(scale.x, scaleY, scale.z);
+        character.localScale = scale;
+    }
+
+    void CharacterPressUp()
+    {
+        Vector3 scale = character.localScale;
+        float scaleY = Mathf.Clamp(scale.y + YUpSpeed, MinScaleY, MaxScaleY);
+        scale.Set(scale.x, scaleY, scale.z);
+        character.localScale = scale;
+    }
+
+    void PlayerFollow()
+    {
+        //PlayerPos=platform高度/2f+人物高度/2f
+        float platY = curPlatform.localPosition.y + curPlatform.localScale.y / 2f + character.localScale.y;//TODO 这个模型不知道为什么需要多加0.5，所以暂时不/2
+        character.localPosition = new Vector3(character.localPosition.x, platY, character.localPosition.z);
+    }
+    #endregion
+
     private void Update()
     {
         if (!GameManager.CanControll)
             return;
 
+        if (Panel_Game.touch.IsDown)
+        {
+            RefreshThreePoint();
+            GetCurrentArea();
+            GetNextArea();
+            originPos = curPlatform.localPosition;
+        }
+
+        if (Panel_Game.touch.IsHold)
+        {
+            CharacterPressDown();
+            PlayerFollow();
+            isPress = true;
+            SetThreePoint();
+        }
+        else
+        {
+            CharacterPressUp();
+        }
+
+        if(isPress&&!Panel_Game.touch.IsHold)
+        {
+            UIManager.CanTouch = false;
+            isPress = false;
+            Jump();
+        }
     }
 
-    void OnPressDown()
+    private void OnDrawGizmos()
     {
-        pressTime = Time.unscaledTime;
+        Gizmos.DrawSphere(startPoint,0.2f);
+        Gizmos.DrawSphere(midPoint, 0.2f);
+        Gizmos.DrawSphere(endPoint, 0.2f);
     }
 
-    void OnPressUp()
+    #region EndPointMove
+
+    void RefreshThreePoint()
     {
-        pressTime = Time.unscaledTime - pressTime;
-        direction = (nextPlatform.position - character.position+new Vector3(0,10,0)).normalized;
-        Jump(pressTime);
+        startPoint = character.position;
+        Vector3 temp = new Vector3(nextPlatform.localPosition.x, startPoint.y, nextPlatform.localPosition.z);
+        Vector3 direction = (temp - startPoint).normalized;
+        endPoint = character.position + direction;
+        float midX = startPoint.x+(endPoint.x - startPoint.x) / 2f;
+        float midZ = startPoint.z+(endPoint.z - startPoint.z) / 2f;
+        midPoint.Set(midX, endPoint.y + JumpY, midZ);
+    }
+    void SetThreePoint()
+    {
+        Vector3 temp = new Vector3(nextPlatform.localPosition.x, startPoint.y, nextPlatform.localPosition.z);
+        Vector3 direction = (temp - startPoint).normalized;
+        endPoint += (direction * 0.1f);
+        float midX = startPoint.x + (endPoint.x - startPoint.x) / 2f;
+        float midZ = startPoint.z + (endPoint.z - startPoint.z) / 2f;
+        midPoint.Set(midX, endPoint.y + JumpY, midZ);
+    }
+    #endregion
+
+    #region Jump
+    void Jump()
+    {
+        float distance = Vector3.Distance(endPoint, startPoint);
+        jumpTime =  distance/ JumpHorizontalSpeed;
+        DOTween.To((t) =>
+        {
+            SetCharacterCurveMove(t);
+            SetCharacterRotate(t);
+        }, 0f, 1f, jumpTime).onComplete = OnJumpFinish;
     }
 
-    void Jump(float holdTime)
+    void SetCharacterCurveMove(float t)
     {
-        characterRigi.AddForce(direction * speed * holdTime, ForceMode.Impulse);
+        Vector3 targetPoint = GetBezierPoint(t);
+        character.position = targetPoint;
     }
+
+    void SetCharacterRotate(float t)
+    {
+        Vector3 rotation = character.localEulerAngles;
+        rotation.Set(rotation.x, rotation.y, t * 360f);
+        character.localEulerAngles = rotation;
+    }
+
+    public Vector3 GetBezierPoint(float t)
+    {
+        Vector3 a = startPoint;
+        Vector3 b = midPoint;
+        Vector3 c = endPoint;
+
+        Vector3 aa = a + (b - a) * t;
+        Vector3 bb = b + (c - b) * t;
+        return aa + (bb - aa) * t;
+    }
+    #endregion
 
     #region JumpFinish
     void OnJumpFinish()
     {
-        
+        /*只要在区域内，都会重置控制权；但还在原来的平台上就不会生成，也不会移动相机*/
+        if (IsInArea())
+        {
+            if (!IsInSameArea())
+            {
+                curPlatform = GameManager.Inst.SearchPool(nextPlatform.name);
+                Vector3 nextPos = GameManager.Inst.GetNextPlatformPos(curPlatform.position);
+                nextPlatform = GameManager.Inst.SpawnPlatform(nextPos);
+                CameraFocusJog();
+                EventHandler.ScoreTween_Dispatch(1);
+            }
+            GameManager.CanControll = true;
+        }
+        else
+        {
+            GameManager.CanControll = false;
+            PlayerFall(() => { UIManager.OpenUI<Pop_Fail>(UIPanel.Fail); });
+        }
+        UIManager.CanTouch = true;
     }
 
-    IEnumerator CheckRigidbody()
+    void PlayerFall(System.Action callback)
     {
-        curTime = Time.unscaledTime;
-        while (Time.unscaledTime-curTime<MaxTime)
+        character.DOLocalMoveY(1, 0.5f).onComplete = () => callback?.Invoke();
+    }
+    #endregion
+
+    #region Area
+    void GetNextArea()
+    {
+        Vector3 nextPos = nextPlatform.localPosition;
+        GetArea(nextPos, 1);
+    }
+
+    void GetCurrentArea()
+    {
+        Vector3 curPos = curPlatform.localPosition;
+        GetArea(curPos, 0);
+    }
+
+    void GetArea(Vector3 pos,int index)
+    {
+        Vector2 rectStartPos = new Vector2(pos.x - platformSize.x / 2, pos.z - platformSize.y / 2);
+        jugeArea[index].Set(rectStartPos.x, rectStartPos.y, platformSize.x, platformSize.y);
+    }
+    
+    bool IsInArea()
+    {
+        for (int i = 0; i < jugeArea.Length; i++)
         {
-            yield return new WaitForSecondsRealtime(0.1f);
-            if (characterRigi.velocity==Vector3.zero)
+            if (jugeArea[i].Contains(new Vector2(endPoint.x, endPoint.z)))
             {
-                isJumping = false;
-                break;
+                return true;
             }
         }
+        return false;
     }
+
+    bool IsInSameArea()
+    {
+        return jugeArea[0].Contains(new Vector2(endPoint.x, endPoint.z));
+    }
+
     #endregion
 
     #region Camera
@@ -139,7 +323,6 @@ public class PlayerController : MonoBehaviour
 
     public void Uninit()
     {
-        Panel_Game.touch.PointerDown -= OnPressDown;
-        Panel_Game.touch.PointerUp -= OnPressUp;
+        
     }
 }
