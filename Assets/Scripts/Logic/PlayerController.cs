@@ -17,7 +17,7 @@ public class PlayerController : MonoBehaviour
     /// <summary>
     /// platform压缩与弹起的速度
     /// </summary>
-    private const float YDownSpeed = 0.001f, YUpSpeed = 0.002f;
+    private const float YDownSpeed = 0.005f, YUpSpeed = 0.05f;
     /// <summary>
     /// 角色跳起的最高高度
     /// </summary>
@@ -56,7 +56,6 @@ public class PlayerController : MonoBehaviour
     private float cam2playerDistance;
 
     private bool isPress;
-    private bool isUping;
     private Vector3 startPoint, midPoint, endPoint;
     private float jumpTime = 0;
     private Transform cameraTrs;
@@ -71,6 +70,8 @@ public class PlayerController : MonoBehaviour
         jugeArea = new Rect[2] { new Rect(), new Rect() };
         InitCameraPos();
         CameraFocus();
+        Panel_Game.touch.PointerDown += PressDown;
+        Panel_Game.touch.PointerUp += PressUp;
     }
 
     void InitPlayer()
@@ -125,6 +126,23 @@ public class PlayerController : MonoBehaviour
         float platY = curPlatform.localPosition.y + curPlatform.localScale.y / 2f + character.localScale.y;//TODO 这个模型不知道为什么需要多加0.5，所以暂时不/2
         character.localPosition = new Vector3(character.localPosition.x, platY, character.localPosition.z);
     }
+
+    void PressDown()
+    {
+        RefreshThreePoint();
+        GetCurrentArea();
+        GetNextArea();
+        originPos = curPlatform.localPosition;
+        isPress = true;
+    }
+
+    void PressUp()
+    {
+        UIManager.CanTouch = false;
+        Jump();
+        PlatformTween();
+        isPress = false;
+    }
     #endregion
 
     private void Update()
@@ -132,31 +150,15 @@ public class PlayerController : MonoBehaviour
         if (!GameManager.CanControll)
             return;
 
-        if (Panel_Game.touch.IsDown)
-        {
-            RefreshThreePoint();
-            GetCurrentArea();
-            GetNextArea();
-            originPos = curPlatform.localPosition;
-        }
-
-        if (Panel_Game.touch.IsHold)
+        if (isPress)
         {
             CharacterPressDown();
             PlayerFollow();
-            isPress = true;
             SetThreePoint();
         }
         else
         {
             CharacterPressUp();
-        }
-
-        if(isPress&&!Panel_Game.touch.IsHold)
-        {
-            UIManager.CanTouch = false;
-            isPress = false;
-            Jump();
         }
     }
 
@@ -165,6 +167,14 @@ public class PlayerController : MonoBehaviour
         Gizmos.DrawSphere(startPoint,0.2f);
         Gizmos.DrawSphere(midPoint, 0.2f);
         Gizmos.DrawSphere(endPoint, 0.2f);
+    }
+
+    void PlatformTween()
+    {
+        Sequence seq = DOTween.Sequence();
+        seq.Append(curPlatform.DOLocalMoveY(originPos.y-0.2f,0.15f));
+        seq.Append(curPlatform.DOLocalMoveY(originPos.y, 0.2f));
+        seq.Play();
     }
 
     #region EndPointMove
@@ -240,6 +250,14 @@ public class PlayerController : MonoBehaviour
                 nextPlatform = GameManager.Inst.SpawnPlatform(nextPos);
                 CameraFocusJog();
                 EventHandler.ScoreTween_Dispatch(1);
+                DelayManager.Inst.DelayDo("CheckHeight", 0.5f,()=>
+                {
+                    if (DatabaseMgr.IsMatchAnyHeight())
+                    {
+                        UIManager.CloseUI(UIPanel.Game);
+                        UIManager.OpenUI<Panel_HeightTips>(UIPanel.HeightTips);
+                    }
+                });
             }
             GameManager.CanControll = true;
         }
