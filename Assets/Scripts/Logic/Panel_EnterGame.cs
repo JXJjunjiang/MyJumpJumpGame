@@ -15,7 +15,6 @@ public class Panel_EnterGame : UIBase
     public override void Open()
     {
         canvasGroup.SetFade(0);
-        UIManager.CanTouch = false;
         DOTween.To((t) =>
         {
             canvasGroup.alpha = t;

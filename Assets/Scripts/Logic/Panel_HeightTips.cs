@@ -14,21 +14,28 @@ public class Panel_HeightTips : UIBase
     private RectTransform rectMask;
     private RectTransform bg;
     private RectTransform label;
+    private Button maskBtn;
     protected override void Awake()
     {
         base.Awake();
         expandBtn = transform.Find("ExpandBtn").GetComponent<RectTransform>();
         rectMask = transform.Find("RectMask").GetComponent<RectTransform>();
         bg = transform.Find("RectMask/BG").GetComponent<RectTransform>();
-        label.transform.Find("RectMask/Label").GetComponent<RectTransform>();
+        label = transform.Find("RectMask/Label").GetComponent<RectTransform>();
+        maskBtn = transform.Find("Mask").RequireComponent<Button>();
         expandBtn.RequireComponent<Button>().AddListener(ExpandBtnClick);
+        maskBtn.AddListener(() =>
+        {
+            UIManager.CloseUI(UIPanel.HeightTips);
+            UIManager.OpenUI<Panel_Game>(UIPanel.Game);
+        });
     }
 
     public override void Open()
     {
         base.Open();
         rectMask.sizeDelta = new Vector2(rectMask.sizeDelta.x, MinHeight);
-        expandBtn.localPosition = new Vector3(expandBtn.localPosition.x, -MinHeight - expandBtn.sizeDelta.y / 2f, 0);
+        expandBtn.localPosition = new Vector3(expandBtn.localPosition.x, -MinHeight / 2f - expandBtn.sizeDelta.y / 2f, 0);
         bg.sizeDelta = new Vector2(bg.sizeDelta.x, MaxHeight);
         label.sizeDelta = new Vector2(label.sizeDelta.x, MaxHeight);
         //TODO 设置按钮上的图标
@@ -39,23 +46,22 @@ public class Panel_HeightTips : UIBase
     public override void Close()
     {
         base.Close();
-        UIManager.OpenUI<Panel_Game>(UIPanel.Game);
         DestroyImmediate(gameObject);
     }
 
     #region 展开按钮功能
     private void ExpandBtnClick()
     {
-        if (isExpand)
+        if (!isExpand)
         {
             Expand();
-            isExpand = false;
+            isExpand = true;
             //TODO 切换按钮上的图标
         }
         else
         {
             Collapse();
-            isExpand = true;
+            isExpand = false;
             //TODO 切换按钮上的图标
         }
     }
@@ -83,7 +89,7 @@ public class Panel_HeightTips : UIBase
             rectMask.sizeDelta = sizeDetal;
 
             Vector3 pos = expandBtn.localPosition;
-            pos.Set(pos.x, -sizeDetal.y / 2f + expandBtn.sizeDelta.y / 2f, 0);
+            pos.Set(pos.x, -sizeDetal.y / 2f - expandBtn.sizeDelta.y / 2f, 0);
             expandBtn.localPosition = pos;
         }, 0, 1, 0.25f);
     }

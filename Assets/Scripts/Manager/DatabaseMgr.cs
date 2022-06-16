@@ -5,6 +5,7 @@ using UnityEngine;
 public class DatabaseMgr : MonoSingleton<DatabaseMgr>,IMgrInit
 {
     private static Dictionary<UIPanel, UIInfo> uiDatas;
+    private static Dictionary<int, string> heightInfo;
     private const string Key_PlatformPos = "PlatformPos";
     private const string Key_Score = "Score";
     private const string Key_PlayerPos = "PlayerPos";
@@ -17,7 +18,7 @@ public class DatabaseMgr : MonoSingleton<DatabaseMgr>,IMgrInit
     }
 
     private static Vector3 _platformPos;
-    public static Vector3 curPlatformPos
+    public static Vector3 CurPlatformPos
     {
         get => _platformPos;
         set => _platformPos = value;
@@ -42,18 +43,29 @@ public class DatabaseMgr : MonoSingleton<DatabaseMgr>,IMgrInit
             { UIPanel.Fail,new UIInfo(UIPanel.Fail,UILayer.Pop,1,"GameFail") },
             { UIPanel.HeightTips,new UIInfo(UIPanel.HeightTips,UILayer.Window,1,"HeightTips") }
         };
-
+        heightInfo = new Dictionary<int, string>()
+        {
+            {5,"咕咕咕咕咕咕过ID黑丝哦积分new我军费能狂怒哇hi偶尔" },
+            {10,"大大1玩法的时触发舒服 彩色电视 2我第三册ad啊" },
+            {20,"冯绍峰顺丰到付身上的防守打法是法师法师法师法师发全是爱舒服舒服" },
+            {25,"大大的43额的房产税打确定第三方方式发舒服 氛围房地产撒大声地" },
+            {30,"大事反身代词小反身代词吸附石的操作想问问发从上到下这是大V从行为发生的初学者" },
+            {40,"UI好久看不那么UI好几百年没回家不看美女会加快不那么，火箭难看吗，窘困，吗" },
+            {50,"0破解卡利玛你， 优惠近半年没会加快不那么回家不那么8亿会尽可能买黄金看你们我， " },
+            {70," 如果他不是份小吃金科没， 过滤法从自己快乐柠檬，地方vcoklm,.方便查viojklm,。托付给不草佩可莉姆，。 " },
+            {80,"对焊看美味的，wesdcx wefsdcx c发Greg v地方小吃而奋斗v支持杏仁粉v第三次写入放大v从写入放大v从地方v现场" }
+        };
         ReadData();
     }
 
     public static string GetHeightLabel()
     {
-        return string.Empty;
+        return heightInfo[_score];
     }
 
     public static bool IsMatchAnyHeight()
     {
-        return false;
+        return heightInfo.ContainsKey(_score);
     }
 
     public static UIInfo GetUIInfo(UIPanel panel)
@@ -69,41 +81,42 @@ public class DatabaseMgr : MonoSingleton<DatabaseMgr>,IMgrInit
     private void ReadData()
     {
         _score = PlayerPrefs.GetInt(Key_Score);
-        #region platform
-        string readPlatform = string.Empty;
-        string[] platStrs = new string[3];
-        Vector3 platPos = Vector3.zero;
-        try{
-            readPlatform = PlayerPrefs.GetString(Key_PlatformPos);
-            platStrs = readPlatform.Split(',');
-            platPos = new Vector3(float.Parse(platStrs[0]), float.Parse(platStrs[1]), float.Parse(platStrs[1]));
-        }
-        catch{
-            Debug.LogError("init fail,because read data can not convert to float");
-            return;
-        }
-        _platformPos = platPos;
-        #endregion
-        #region player
-        string readPlayer = string.Empty;
-        string[] playerStrs = new string[3];
-        Vector3 playerPos = Vector3.zero;
-        try{
-            readPlayer = PlayerPrefs.GetString(Key_PlayerPos);
-            playerStrs = readPlatform.Split(',');
-            playerPos = new Vector3(float.Parse(platStrs[0]), float.Parse(platStrs[1]), float.Parse(platStrs[1]));
-        }
-        catch{
-            Debug.LogError("init fail,because read data can not convert to float");
-            return;
-        }
-        _playerPos = platPos;
-        #endregion
+        _platformPos = String2Vector(PlayerPrefs.GetString(Key_PlatformPos));
+        _playerPos = String2Vector(PlayerPrefs.GetString(Key_PlayerPos));
     }
     private void WriteData()
     {
-
+        PlayerPrefs.SetInt(Key_Score, _score);
+        PlayerPrefs.SetString(Key_PlatformPos, Vector2String(_platformPos));
+        PlayerPrefs.SetString(Key_PlayerPos, Vector2String(_playerPos));
     }
+
+    Vector3 String2Vector(string str)
+    {
+        if (string.IsNullOrEmpty(str))
+        {
+            return Vector3.zero;
+        }
+        Vector3 result = Vector3.zero;
+        try{
+            string[] strs = str.Split(',');
+            result.Set(float.Parse(strs[0]), float.Parse(strs[1]), float.Parse(strs[1]));
+        }
+        catch{
+            Debug.LogErrorFormat("[{0}] can not convert to vector3", str);
+        }
+        return result;
+    }
+
+    string Vector2String(Vector3 vector)
+    {
+        System.Text.StringBuilder result = new System.Text.StringBuilder();
+        result.Append(vector.x+",");
+        result.Append(vector.y + ",");
+        result.Append(vector.z);
+        return result.ToString();
+    }
+
     public void UnInit()
     {
         WriteData();

@@ -20,11 +20,11 @@ public class TouchListener : MonoBehaviour,IPointerDownHandler,IPointerUpHandler
 
     public void OnPointerDown(PointerEventData eventData)
     {
-        PointerDown.Invoke();
+        PointerDown?.Invoke();
     }
 
     public void OnPointerUp(PointerEventData eventData)
     {
-        PointerUp.Invoke();
+        PointerUp?.Invoke();
     }
 }

@@ -8,6 +8,7 @@ public class UIManager : MonoSingleton<UIManager>,IMgrInit
 {
     private static Dictionary<UILayer, Transform> nodes;
     private static Dictionary<UILayer, Stack<UIBase>> openUIStacks;
+    private static Dictionary<UIPanel, UIBase> hideUIDic;
     private Transform uiRoot;
     private static Camera uiCamera;
     private static Image blockTouchImg;
@@ -43,23 +44,33 @@ public class UIManager : MonoSingleton<UIManager>,IMgrInit
             { UILayer.Pop,uiRoot.Find("Canvas/Pop")},
             { UILayer.Top,uiRoot.Find("Canvas/Top")}
         };
+        hideUIDic = new Dictionary<UIPanel, UIBase>();
         OpenUI<Panel_EnterGame>(UIPanel.EnterGame);
     }
     public static void OpenUI<T>(UIPanel panel) where T:UIBase
     {
-        var uiInfo = DatabaseMgr.GetUIInfo(panel);
-        var obj = Instantiate<GameObject>(Loader.LoadUI(uiInfo.path));
-        obj.transform.SetParent(nodes[uiInfo.layer]);
-        obj.GetComponent<RectTransform>().Reset();
-        var uiBase = obj.RequireComponent<T>();
-        uiBase.info = uiInfo;
-
-        var openStack = openUIStacks[uiInfo.layer];
-        if (openStack.Count>0&&openStack.Peek()!=null&&openStack.Peek().info.depth==uiInfo.depth)
+        UIBase uiBase = null;
+        UIInfo uiInfo = DatabaseMgr.GetUIInfo(panel);
+        if (!hideUIDic.ContainsKey(panel))
         {
-            CloseUI(uiInfo.layer);
-        }
+            var obj = Instantiate<GameObject>(Loader.LoadUI(uiInfo.path));
+            obj.transform.SetParent(nodes[uiInfo.layer]);
+            obj.GetComponent<RectTransform>().Reset();
+            uiBase = obj.RequireComponent<T>();
+            uiBase.info = uiInfo;
 
+            var openStack = openUIStacks[uiInfo.layer];
+            if (openStack.Count > 0 && openStack.Peek() != null && openStack.Peek().info.depth == uiInfo.depth)
+            {
+                CloseUI(uiInfo.layer);
+            }
+        }
+        else
+        {
+            uiBase = hideUIDic[panel];
+            hideUIDic.Remove(panel);
+            uiBase.gameObject.SetActive(true);
+        }
         openUIStacks[uiInfo.layer].Push(uiBase);
         uiBase.Open();
     }
@@ -76,6 +87,15 @@ public class UIManager : MonoSingleton<UIManager>,IMgrInit
         UIBase uiBase = openUIStacks[uiInfo.layer].Pop();
         uiBase.Close();
     }
+
+    public static void HideUI(UIPanel panel)
+    {
+        UIInfo uiInfo = DatabaseMgr.GetUIInfo(panel);
+        UIBase uiBase = openUIStacks[uiInfo.layer].Pop();
+        uiBase.gameObject.SetActive(false);
+        hideUIDic.Add(panel, uiBase);
+    }
+
 
     void OnDisable()
     {

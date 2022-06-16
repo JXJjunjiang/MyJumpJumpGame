@@ -9,14 +9,17 @@ public class Panel_Game : UIBase
 {
     private CanvasGroup canvasGroup;
     private Text score;
+    private Image touchImg;
+    public static TouchListener touch;
     private Button exitBtn;
-    public static TouchListener touch = null;
 
     protected override void Awake()
     {
         base.Awake();
         canvasGroup = GetComponent<CanvasGroup>();
         score = transform.Find("Score").GetComponent<Text>();
+        touchImg = transform.Find("TouchImg").GetComponent<Image>();
+        touch = touchImg.transform.RequireComponent<TouchListener>();
         score.text = DatabaseMgr.Score.ToString();
         exitBtn = transform.Find("ExitBtn").GetComponent<Button>();
         exitBtn.AddListener(() =>
@@ -24,7 +27,6 @@ public class Panel_Game : UIBase
             UIManager.CloseUI(UIPanel.Game);
             UIManager.OpenUI<Panel_Main>(UIPanel.Main);
         });
-        touch = transform.Find("Touch").RequireComponent<TouchListener>();
     }
     public override void Open()
     {
@@ -43,7 +45,7 @@ public class Panel_Game : UIBase
     {
         base.Close();
         EventHandler.ScoreTween_Listener -= ScoreNumberTween;
-        DestroyImmediate(gameObject);
+        DestroyImmediate(this.gameObject);
     }
 
     private void ScoreNumberTween(int plusScore)
@@ -55,5 +57,10 @@ public class Panel_Game : UIBase
         seq.Append(score.transform.DOScale(1.3f, 0.2f));
         seq.Append(score.transform.DOScale(1f, 0.2f));
         seq.Play();
+    }
+
+    private void OnDisable()
+    {
+        EventHandler.ScoreTween_Listener -= ScoreNumberTween;
     }
 }

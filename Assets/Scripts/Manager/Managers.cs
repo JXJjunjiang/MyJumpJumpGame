@@ -19,6 +19,7 @@ public class Managers : MonoBehaviour,IMgrInit
         managers.Add(CreateTargetManager<DatabaseMgr>("DatabaseManager"));
         managers.Add(CreateTargetManager<UIManager>("UIManager"));
         managers.Add(CreateTargetManager<GameManager>("GameManager"));
+        managers.Add(CreateTargetManager<DelayManager>("DelayManager"));
         foreach (var manager in managers)
         {
             manager.Init();

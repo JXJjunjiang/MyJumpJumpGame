@@ -65,6 +65,7 @@ public class PlayerController : MonoBehaviour
     {
         InitPlatform();
         isPress = false;
+        GameManager.CanControll = true;
         jumpTime = 0;
         InitPlayer();
         jugeArea = new Rect[2] { new Rect(), new Rect() };
@@ -240,7 +241,7 @@ public class PlayerController : MonoBehaviour
     #region JumpFinish
     void OnJumpFinish()
     {
-        /*只要在区域内，都会重置控制权；但还在原来的平台上就不会生成，也不会移动相机*/
+        UIManager.CanTouch = true;
         if (IsInArea())
         {
             if (!IsInSameArea())
@@ -250,11 +251,11 @@ public class PlayerController : MonoBehaviour
                 nextPlatform = GameManager.Inst.SpawnPlatform(nextPos);
                 CameraFocusJog();
                 EventHandler.ScoreTween_Dispatch(1);
-                DelayManager.Inst.DelayDo("CheckHeight", 0.5f,()=>
+                DelayManager.Inst.DelayDo("CheckHeight", 0.4f,()=>
                 {
                     if (DatabaseMgr.IsMatchAnyHeight())
                     {
-                        UIManager.CloseUI(UIPanel.Game);
+                        UIManager.HideUI(UIPanel.Game);
                         UIManager.OpenUI<Panel_HeightTips>(UIPanel.HeightTips);
                     }
                 });
@@ -266,7 +267,6 @@ public class PlayerController : MonoBehaviour
             GameManager.CanControll = false;
             PlayerFall(() => { UIManager.OpenUI<Pop_Fail>(UIPanel.Fail); });
         }
-        UIManager.CanTouch = true;
     }
 
     void PlayerFall(System.Action callback)
