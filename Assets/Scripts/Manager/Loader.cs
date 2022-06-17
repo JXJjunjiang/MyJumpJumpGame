@@ -6,6 +6,7 @@ public class Loader : MonoBehaviour
 {
     private const string GamePath = "Prefab/Game/";
     private const string UIPath = "Prefab/UI/";
+    private const string SpritePath = "Sprite/";
     private const string AudioPath = "Audio/";
     private const string AudioSettingPath = "GameAudio";
 
@@ -20,6 +21,22 @@ public class Loader : MonoBehaviour
         if (targetLoad==null)
         {
             Debug.LogError("prefab does not exsit in " + UIPath+uiName);
+            return null;
+        }
+        return targetLoad;
+    }
+
+    public static Sprite LoadSprite(string spriteName)
+    {
+        if (string.IsNullOrEmpty(spriteName))
+        {
+            Debug.LogError("spriteName name is empty");
+            return null;
+        }
+        Sprite targetLoad = Resources.Load<Sprite>(SpritePath + spriteName);
+        if (targetLoad == null)
+        {
+            Debug.LogError("sprite does not exsit in " + SpritePath + spriteName);
             return null;
         }
         return targetLoad;

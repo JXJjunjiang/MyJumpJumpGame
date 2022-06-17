@@ -38,8 +38,7 @@ public class Panel_HeightTips : UIBase
         expandBtn.localPosition = new Vector3(expandBtn.localPosition.x, -MinHeight / 2f - expandBtn.sizeDelta.y / 2f, 0);
         bg.sizeDelta = new Vector2(bg.sizeDelta.x, MaxHeight);
         label.sizeDelta = new Vector2(label.sizeDelta.x, MaxHeight);
-        //TODO 设置按钮上的图标
-
+        expandBtn.Find("icon").GetComponent<Image>().sprite = Loader.LoadSprite("arrow_down");
         label.RequireComponent<Text>().text = DatabaseMgr.GetHeightLabel();
     }
 
@@ -56,13 +55,13 @@ public class Panel_HeightTips : UIBase
         {
             Expand();
             isExpand = true;
-            //TODO 切换按钮上的图标
+            expandBtn.Find("icon").GetComponent<Image>().sprite = Loader.LoadSprite("arrow_up");
         }
         else
         {
             Collapse();
             isExpand = false;
-            //TODO 切换按钮上的图标
+            expandBtn.Find("icon").GetComponent<Image>().sprite = Loader.LoadSprite("arrow_down");
         }
     }
 
