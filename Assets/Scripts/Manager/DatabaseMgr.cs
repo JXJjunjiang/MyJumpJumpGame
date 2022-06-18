@@ -6,6 +6,8 @@ public class DatabaseMgr : MonoSingleton<DatabaseMgr>,IMgrInit
 {
     private static Dictionary<UIPanel, UIInfo> uiDatas;
     private static Dictionary<int, string> heightInfo;
+    private static List<int> characterIds;
+    private static List<int> enviromentIds;
     private const string Key_PlatformPos = "PlatformPos";
     private const string Key_Score = "Score";
     private const string Key_PlayerPos = "PlayerPos";
@@ -17,18 +19,11 @@ public class DatabaseMgr : MonoSingleton<DatabaseMgr>,IMgrInit
         set => _score = value;
     }
 
-    private static Vector3 _platformPos;
-    public static Vector3 CurPlatformPos
+    private static int characterId;
+    public static int CharacterID
     {
-        get => _platformPos;
-        set => _platformPos = value;
-    }
-
-    private static Vector3 _playerPos;
-    public static Vector3 PlayerPos
-    {
-        get => _playerPos;
-        set => _playerPos = value;
+        get => characterId;
+        set => characterId = value;
     }
 
     public void Init()
@@ -39,6 +34,7 @@ public class DatabaseMgr : MonoSingleton<DatabaseMgr>,IMgrInit
             { UIPanel.Main,new UIInfo(UIPanel.Main,UILayer.Bottom,1,"Main")},
             { UIPanel.MoreInfo,new UIInfo(UIPanel.MoreInfo,UILayer.Bottom,2,"MoreInfo") },
             { UIPanel.Setting,new UIInfo(UIPanel.Setting,UILayer.Bottom,2,"Setting") },
+            { UIPanel.Topic,new UIInfo(UIPanel.Topic,UILayer.Bottom,2,"Topic") },
             { UIPanel.Game,new UIInfo(UIPanel.Game,UILayer.Bottom,1,"GameUI")},
             { UIPanel.Fail,new UIInfo(UIPanel.Fail,UILayer.Pop,1,"GameFail") },
             { UIPanel.HeightTips,new UIInfo(UIPanel.HeightTips,UILayer.Window,1,"HeightTips") }
@@ -55,6 +51,8 @@ public class DatabaseMgr : MonoSingleton<DatabaseMgr>,IMgrInit
             {70," 如果他不是份小吃金科没， 过滤法从自己快乐柠檬，地方vcoklm,.方便查viojklm,。托付给不草佩可莉姆，。 " },
             {80,"对焊看美味的，wesdcx wefsdcx c发Greg v地方小吃而奋斗v支持杏仁粉v第三次写入放大v从写入放大v从地方v现场" }
         };
+        characterIds = new List<int>() { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        enviromentIds = new List<int>() { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
         ReadData();
     }
 
@@ -78,17 +76,23 @@ public class DatabaseMgr : MonoSingleton<DatabaseMgr>,IMgrInit
         return uiDatas[panel];
     }
 
+    public List<int> GetCharacters()
+    {
+        return characterIds;
+    }
+
+    public List<int>GetEnviroments()
+    {
+        return enviromentIds;
+    }
+
     private void ReadData()
     {
         _score = PlayerPrefs.GetInt(Key_Score);
-        _platformPos = String2Vector(PlayerPrefs.GetString(Key_PlatformPos));
-        _playerPos = String2Vector(PlayerPrefs.GetString(Key_PlayerPos));
     }
     private void WriteData()
     {
         PlayerPrefs.SetInt(Key_Score, _score);
-        PlayerPrefs.SetString(Key_PlatformPos, Vector2String(_platformPos));
-        PlayerPrefs.SetString(Key_PlayerPos, Vector2String(_playerPos));
     }
 
     Vector3 String2Vector(string str)

@@ -12,7 +12,8 @@ public enum UIPanel
     ExitGame,
     Game,
     Account,
-    HeightTips
+    HeightTips,
+    Topic
 }
 public enum UILayer
 {

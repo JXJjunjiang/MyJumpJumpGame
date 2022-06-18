@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 public class Panel_Main : UIBase
 {
-    private Button startBtn, settingBtn, moreBtn;
+    private Button startBtn, settingBtn,topicBtn, moreBtn;
 
     protected override void Awake()
     {
@@ -20,6 +20,11 @@ public class Panel_Main : UIBase
         settingBtn.AddListener(() =>
         {
             UIManager.OpenUI<Panel_Setting>(UIPanel.Setting);
+        });
+        topicBtn = transform.Find("TopicBtn").GetComponent<Button>();
+        topicBtn.AddListener(() =>
+        {
+            UIManager.OpenUI<Panel_Topic>(UIPanel.Topic);
         });
         moreBtn = transform.Find("MoreInfoBtn").GetComponent<Button>();
         moreBtn.AddListener(() =>
