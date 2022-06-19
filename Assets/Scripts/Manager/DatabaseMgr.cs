@@ -26,6 +26,13 @@ public class DatabaseMgr : MonoSingleton<DatabaseMgr>,IMgrInit
         set => characterId = value;
     }
 
+    private static int enviromentId;
+    public static int EnviromentID
+    {
+        get => enviromentId;
+        set => enviromentId = value;
+    }
+
     public void Init()
     {
         uiDatas = new Dictionary<UIPanel, UIInfo>()
@@ -51,8 +58,8 @@ public class DatabaseMgr : MonoSingleton<DatabaseMgr>,IMgrInit
             {70," 如果他不是份小吃金科没， 过滤法从自己快乐柠檬，地方vcoklm,.方便查viojklm,。托付给不草佩可莉姆，。 " },
             {80,"对焊看美味的，wesdcx wefsdcx c发Greg v地方小吃而奋斗v支持杏仁粉v第三次写入放大v从写入放大v从地方v现场" }
         };
-        characterIds = new List<int>() { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-        enviromentIds = new List<int>() { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        characterIds = new List<int>() { 0, 1, 2, 3, 4 };
+        enviromentIds = new List<int>() { 0, 1, 2, 3, 4 };
         ReadData();
     }
 

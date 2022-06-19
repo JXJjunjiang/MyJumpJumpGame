@@ -60,7 +60,17 @@ public class PlayerController : MonoBehaviour
     private float jumpTime = 0;
     private Transform cameraTrs;
     private Vector3 originPos;
+    private Vector3 cameraPos;
+    private const float endPointMoveSpeed = 0.05f;
 
+    private void Awake()
+    {
+        if (cameraTrs == null)
+        {
+            cameraTrs = Camera.main.transform;
+        }
+        cameraPos = cameraTrs.position;
+    }
     public void Init()
     {
         InitPlatform();
@@ -194,7 +204,7 @@ public class PlayerController : MonoBehaviour
     {
         Vector3 temp = new Vector3(nextPlatform.localPosition.x, startPoint.y, nextPlatform.localPosition.z);
         Vector3 direction = (temp - startPoint).normalized;
-        endPoint += (direction * 0.1f);
+        endPoint += (direction * endPointMoveSpeed);
         float midX = startPoint.x + (endPoint.x - startPoint.x) / 2f;
         float midZ = startPoint.z + (endPoint.z - startPoint.z) / 2f;
         midPoint.Set(midX, endPoint.y + JumpY, midZ);
@@ -241,7 +251,6 @@ public class PlayerController : MonoBehaviour
     #region JumpFinish
     void OnJumpFinish()
     {
-        UIManager.CanTouch = true;
         if (IsInArea())
         {
             if (!IsInSameArea())
@@ -251,14 +260,12 @@ public class PlayerController : MonoBehaviour
                 nextPlatform = GameManager.Inst.SpawnPlatform(nextPos);
                 CameraFocusJog();
                 EventHandler.ScoreTween_Dispatch(1);
-                DelayManager.Inst.DelayDo("CheckHeight", 0.4f,()=>
+                if (DatabaseMgr.IsMatchAnyHeight())
                 {
-                    if (DatabaseMgr.IsMatchAnyHeight())
-                    {
-                        UIManager.HideUI(UIPanel.Game);
-                        UIManager.OpenUI<Panel_HeightTips>(UIPanel.HeightTips);
-                    }
-                });
+                    UIManager.HideUI(UIPanel.Game);
+                    UIManager.OpenUI<Panel_HeightTips>(UIPanel.HeightTips);
+                }
+                UIManager.CanTouch = true;
             }
             GameManager.CanControll = true;
         }
@@ -332,10 +339,8 @@ public class PlayerController : MonoBehaviour
         {
             cameraTrs = Camera.main.transform;
         }
-        Vector3 pos = new Vector3(15f, 15, -13);
-        cameraTrs.position = pos;
-        cam2playerDir = (pos - character.position).normalized;
-        cam2playerDistance = Vector3.Distance(character.position, pos);
+        cam2playerDir = (cameraPos - character.position).normalized;
+        cam2playerDistance = Vector3.Distance(character.position, cameraPos);
     }
     #endregion
 
