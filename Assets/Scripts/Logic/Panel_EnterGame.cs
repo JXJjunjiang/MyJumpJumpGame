@@ -14,7 +14,7 @@ public class Panel_EnterGame : UIBase
 
     public override void Open()
     {
-        canvasGroup.SetFade(0);
+        canvasGroup.alpha = 0;
         DOTween.To((t) =>
         {
             canvasGroup.alpha = t;
@@ -23,7 +23,7 @@ public class Panel_EnterGame : UIBase
 
     public override void Close()
     {
-        canvasGroup.SetFade(1);
+        canvasGroup.alpha = 1;
         DOTween.To((t) =>
         {
             canvasGroup.alpha = t;

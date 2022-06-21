@@ -38,16 +38,6 @@ public class GameManager : MonoSingleton<GameManager>,IMgrInit
     private Queue<Transform> spawnPlatforms;
     private int platformIndex = 0;
 
-    private static bool _isGameEnd = false;
-    /// <summary>
-    /// 游戏是否结束(主角死亡)
-    /// </summary>
-    public static bool IsGameEnd
-    {
-        get => _isGameEnd;
-        set => _isGameEnd = value;
-    }
-
     private static bool _canControll;
     /// <summary>
     /// 是否可控制
@@ -61,18 +51,15 @@ public class GameManager : MonoSingleton<GameManager>,IMgrInit
 
     public void Init()
     {
-        gameRoot = Instantiate<Transform>(Loader.LoadGame("Game").transform);
-        gameRoot.Reset();
         platformPrefab = Loader.LoadGame(PlatformPrefabName);
-        platformRoot = gameRoot.Find("PlatformRoot");
         spawnPlatforms = new Queue<Transform>(PoolMaxItemsCount);
+        EventHandler.GameStart_Listener += InitGameRoot;
         EventHandler.GameStart_Listener += InitData;
         EventHandler.GameStart_Listener += InitPlayer;
     }
 
     private void InitData()
     {
-        _isGameEnd = false;
         _canControll = false;
         platformIndex = 0;
         while (spawnPlatforms.Count>0)
@@ -94,6 +81,19 @@ public class GameManager : MonoSingleton<GameManager>,IMgrInit
         var controller = playerRoot.RequireComponent<PlayerController>();
         controller.Uninit();
         controller.Init();
+    }
+
+    private void InitGameRoot()
+    {
+        if (gameRoot==null)
+        {
+            gameRoot = Instantiate<Transform>(Loader.LoadGame("Game").transform);
+            if (platformRoot==null)
+            {
+                platformRoot = gameRoot.Find("PlatformRoot");
+            }
+        }
+        gameRoot.Reset();
     }
 
     private void GameExit()
@@ -172,6 +172,7 @@ public class GameManager : MonoSingleton<GameManager>,IMgrInit
 
     public void UnInit()
     {
+        EventHandler.GameStart_Listener -= InitGameRoot;
         EventHandler.GameStart_Listener -= InitData;
         EventHandler.GameStart_Listener -= InitPlayer;
     }

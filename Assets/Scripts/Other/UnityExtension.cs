@@ -36,12 +36,7 @@ public static class UnityExtension
         trs.localScale = Vector3.one;
         trs.localPosition = Vector3.zero;
         trs.localRotation = Quaternion.identity;
-        trs.sizeDelta = Vector2.zero;
-    }
-
-    public static void SetFade(this CanvasGroup canvas, float alpha)
-    {
-        canvas.alpha = alpha;
+        trs.sizeDelta = new Vector2(100f,100f);
     }
 
     public static void SetFade(this Text text,float alpha)
@@ -66,10 +61,64 @@ public static class UnityExtension
 
     public static Vector3 World2UIPos(Vector3 worldPos,RectTransform uiParent)
     {
-        //var screenPos = UIManager.UICamera.WorldToScreenPoint(worldPos);
         var screenPos = Camera.main.WorldToScreenPoint(worldPos);
         Vector2 uiPos = Vector2.zero;
         RectTransformUtility.ScreenPointToLocalPointInRectangle(uiParent, screenPos, UIManager.UICamera, out uiPos);
         return uiPos;
+    }
+
+    public static TransformValue GetTranformValue(this Transform trs)
+    {
+        return new TransformValue(trs.localPosition, trs.localRotation, trs.localScale);
+    }
+
+    public static RectTransformValue GetRectTransformValue(this RectTransform trs)
+    {
+        return new RectTransformValue(trs.localPosition, trs.localRotation, trs.localScale, trs.sizeDelta);
+    }
+
+    public static void CopyTransformValue(this Transform trs1,Transform trs2)
+    {
+        TransformValue tv = trs1.GetTranformValue();
+        trs2.localPosition = tv.position;
+        trs2.localRotation = tv.rotation;
+        trs2.localScale = tv.scale;
+    }
+
+    public static void CopyRectTransformValue(this RectTransform trs1, RectTransform trs2)
+    {
+        RectTransformValue tv = trs1.GetRectTransformValue();
+        trs2.localPosition = tv.position;
+        trs2.localRotation = tv.rotation;
+        trs2.localScale = tv.scale;
+        trs2.sizeDelta = tv.sizeDetal;
+    }
+}
+
+public struct TransformValue
+{
+    public Vector3 position;
+    public Quaternion rotation;
+    public Vector3 scale;
+    public TransformValue(Vector3 _position,Quaternion _rotation,Vector3 _scale)
+    {
+        this.position = _position;
+        this.rotation = _rotation;
+        this.scale = _scale;
+    }
+}
+
+public struct RectTransformValue
+{
+    public Vector3 position;
+    public Quaternion rotation;
+    public Vector3 scale;
+    public Vector2 sizeDetal;
+    public RectTransformValue(Vector3 _position,Quaternion _rotation,Vector3 _scale,Vector2 _sizeDetal)
+    {
+        this.position = _position;
+        this.rotation = _rotation;
+        this.scale = _scale;
+        this.sizeDetal = _sizeDetal;
     }
 }
