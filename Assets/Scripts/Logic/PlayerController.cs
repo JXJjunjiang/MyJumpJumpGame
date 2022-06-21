@@ -75,7 +75,7 @@ public class PlayerController : MonoBehaviour
     {
         InitPlatform();
         isPress = false;
-        GameManager.CanControll = true;
+        GameManager.Inst.CanControll = true;
         jumpTime = 0;
         InitPlayer();
         jugeArea = new Rect[2] { new Rect(), new Rect() };
@@ -92,8 +92,8 @@ public class PlayerController : MonoBehaviour
             var obj = Instantiate<GameObject>(Loader.LoadGame("Player"));
             character = obj.transform;
             character.SetParent(transform);
-            character.Reset();
         }
+        character.Reset();
         character.position = new Vector3(0, curPlatform.localScale.y + character.localScale.y, 0);
     }
 
@@ -149,7 +149,7 @@ public class PlayerController : MonoBehaviour
 
     void PressUp()
     {
-        UIManager.CanTouch = false;
+        UIManager.Inst.CanTouch = false;
         Jump();
         PlatformTween();
         isPress = false;
@@ -158,7 +158,7 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        if (!GameManager.CanControll)
+        if (!GameManager.Inst.CanControll)
             return;
 
         if (isPress)
@@ -259,6 +259,7 @@ public class PlayerController : MonoBehaviour
             if (!isBeyond && !isMiss)
             {
                 //TODO 完全在
+                Debug.Log("完全在");
                 curPlatform = GameManager.Inst.SearchPool(nextPlatform.name);
                 Vector3 nextPos = GameManager.Inst.GetNextPlatformPos(curPlatform.position);
                 nextPlatform = GameManager.Inst.SpawnPlatform(nextPos);
@@ -269,29 +270,56 @@ public class PlayerController : MonoBehaviour
                     UIManager.HideUI(UIPanel.Game);
                     UIManager.OpenUI<Panel_HeightTips>(UIPanel.HeightTips);
                 }
-                GameManager.CanControll = true;
+                GameManager.Inst.CanControll = true;
             }
             else if (isBeyond && isMiss)
             {
                 //TODO 完全不在
+                Debug.Log("完全不在");
                 PlayerFall(() => { UIManager.OpenUI<Pop_Fail>(UIPanel.Fail); });
-                GameManager.CanControll = false;
+                GameManager.Inst.CanControll = false;
             }
             else if (isBeyond)
             {
                 //TODO 超出
+                Debug.Log("超出");
+                PlayerForwardRotate();
+                PlayerFall(() => { UIManager.OpenUI<Pop_Fail>(UIPanel.Fail); });
+                GameManager.Inst.CanControll = false;
             }
             else if (isMiss)
             {
                 //TODO 未及
+                Debug.Log("未及");
+                PlayerBackRotate();
+                PlayerFall(() => { UIManager.OpenUI<Pop_Fail>(UIPanel.Fail); });
+                GameManager.Inst.CanControll = false;
             }
-            UIManager.CanTouch = true;
+            UIManager.Inst.CanTouch = true;
         }
     }
 
     void PlayerFall(System.Action callback)
     {
         character.DOLocalMoveY(1, 0.5f).onComplete = () => callback?.Invoke();
+    }
+
+    void PlayerForwardRotate()
+    {
+        Vector3 dir = (nextPlatform.localPosition - curPlatform.localPosition).normalized;
+        Quaternion rotation = Quaternion.LookRotation(dir);
+        character.localRotation = rotation;
+        Vector3 eulerAngle = character.localEulerAngles;
+        character.DOLocalRotate(new Vector3(-90f, eulerAngle.y, 0), 0.5f);
+    }
+
+    void PlayerBackRotate()
+    {
+        Vector3 dir = (nextPlatform.localPosition - curPlatform.localPosition).normalized;
+        Quaternion rotation = Quaternion.LookRotation(dir);
+        character.localRotation = rotation;
+        Vector3 eulerAngle = character.localEulerAngles;
+        character.DOLocalRotate(new Vector3(-90f, eulerAngle.y, 0), 0.5f);
     }
     #endregion
 
@@ -323,14 +351,22 @@ public class PlayerController : MonoBehaviour
     {
         Vector2 playerPos = new Vector2(character.localPosition.x, character.localPosition.z);
         Vector2 playerSize = new Vector2(character.localScale.x, character.localScale.z);
-        var dir = (nextPlatform.localPosition - curPlatform.localPosition).normalized;
-        //jugeArea[1].Contains()
-        return false;
+        Vector2 dir = (new Vector2(nextPlatform.localPosition.x, nextPlatform.localPosition.z) - new Vector2(curPlatform.localPosition.x, curPlatform.localPosition.z)).normalized;
+        Vector3 modelSize = character.GetComponent<MeshFilter>().GetModelSize();
+        Vector2 point = playerPos + (playerSize * new Vector2(modelSize.x, modelSize.z) * 0.5f).x * dir;
+        Debug.Log(point);
+        return !jugeArea[1].Contains(point);
     }
 
     bool IsMiss()
     {
-        return false;
+        Vector2 playerPos = new Vector2(character.localPosition.x, character.localPosition.z);
+        Vector2 playerSize = new Vector2(character.localScale.x, character.localScale.z);
+        Vector2 dir = (new Vector2(nextPlatform.localPosition.x, nextPlatform.localPosition.z) - new Vector2(curPlatform.localPosition.x, curPlatform.localPosition.z)).normalized;
+        Vector3 modelSize = character.GetComponent<MeshFilter>().GetModelSize();
+        Vector2 point = playerPos - (playerSize * new Vector2(modelSize.x, modelSize.z) * 0.5f).x * dir;
+        Debug.Log(point);
+        return !jugeArea[1].Contains(point);
     }
     #endregion
 

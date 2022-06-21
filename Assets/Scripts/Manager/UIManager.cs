@@ -10,15 +10,15 @@ public class UIManager : MonoSingleton<UIManager>,IMgrInit
     private static Dictionary<UILayer, Stack<UIBase>> openUIStacks;
     private static Dictionary<UIPanel, UIBase> hideUIDic;
     private Transform uiRoot;
-    private static Camera uiCamera;
-    private static Image blockTouchImg;
-    public static bool CanTouch
+    private Camera uiCamera;
+    private Image blockTouchImg;
+    public bool CanTouch
     {
         get => !blockTouchImg.raycastTarget;
         set => blockTouchImg.raycastTarget = !value;
     }
 
-    public static Camera UICamera
+    public Camera UICamera
     {
         get => uiCamera;
         set => uiCamera = value;

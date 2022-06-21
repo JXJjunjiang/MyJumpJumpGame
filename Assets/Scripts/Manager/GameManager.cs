@@ -38,11 +38,11 @@ public class GameManager : MonoSingleton<GameManager>,IMgrInit
     private Queue<Transform> spawnPlatforms;
     private int platformIndex = 0;
 
-    private static bool _canControll;
+    private bool _canControll;
     /// <summary>
     /// 是否可控制
     /// </summary>
-    public static bool CanControll
+    public bool CanControll
     {
         get => _canControll;
         set => _canControll = value;

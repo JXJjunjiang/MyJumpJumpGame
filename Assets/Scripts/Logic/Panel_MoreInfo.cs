@@ -24,20 +24,20 @@ public class Panel_MoreInfo : UIBase
     public override void Open()
     {
         base.Open();
-        UIManager.CanTouch = false;
+        UIManager.Inst.CanTouch = false;
         DOTween.To((t) =>
         {
             rectMask.sizeDelta = new Vector2(rectMask.sizeDelta.x, MaxY * t);
-        }, 0, 1, 0.3f).onComplete = () => UIManager.CanTouch = true;
+        }, 0, 1, 0.3f).onComplete = () => UIManager.Inst.CanTouch = true;
     }
 
     public override void Close()
     {
         base.Close();
-        UIManager.CanTouch = false;
+        UIManager.Inst.CanTouch = false;
         DOTween.To((t) =>
         {
             rectMask.sizeDelta = new Vector2(rectMask.sizeDelta.x, MaxY * t);
-        }, 1, 0, 0.3f).onComplete = () => { UIManager.CanTouch = true; DestroyImmediate(gameObject); };
+        }, 1, 0, 0.3f).onComplete = () => { UIManager.Inst.CanTouch = true; DestroyImmediate(gameObject); };
     }
 }

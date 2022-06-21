@@ -34,11 +34,11 @@ public class Panel_Game : UIBase
         EventHandler.ScoreTween_Listener += ScoreNumberTween;
         canvasGroup.alpha = 0;
         score.text = DatabaseMgr.Score.ToString();
-        UIManager.CanTouch = false;
+        UIManager.Inst.CanTouch = false;
         DOTween.To((t) =>
         {
             canvasGroup.alpha = t;
-        }, 0f, 1f, 0.3f).onComplete = () => UIManager.CanTouch = true;
+        }, 0f, 1f, 0.3f).onComplete = () => UIManager.Inst.CanTouch = true;
     }
 
     public override void Close()

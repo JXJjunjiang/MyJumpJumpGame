@@ -63,7 +63,7 @@ public static class UnityExtension
     {
         var screenPos = Camera.main.WorldToScreenPoint(worldPos);
         Vector2 uiPos = Vector2.zero;
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(uiParent, screenPos, UIManager.UICamera, out uiPos);
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(uiParent, screenPos, UIManager.Inst.UICamera, out uiPos);
         return uiPos;
     }
 
@@ -77,7 +77,7 @@ public static class UnityExtension
         return new RectTransformValue(trs.localPosition, trs.localRotation, trs.localScale, trs.sizeDelta);
     }
 
-    public static void CopyTransformValue(this Transform trs1,Transform trs2)
+    public static void GetTransformValue(this Transform trs1,Transform trs2)
     {
         TransformValue tv = trs1.GetTranformValue();
         trs2.localPosition = tv.position;
@@ -85,13 +85,20 @@ public static class UnityExtension
         trs2.localScale = tv.scale;
     }
 
-    public static void CopyRectTransformValue(this RectTransform trs1, RectTransform trs2)
+    public static void GetRectTransformValue(this RectTransform trs1, RectTransform trs2)
     {
         RectTransformValue tv = trs1.GetRectTransformValue();
         trs2.localPosition = tv.position;
         trs2.localRotation = tv.rotation;
         trs2.localScale = tv.scale;
         trs2.sizeDelta = tv.sizeDetal;
+    }
+
+    public static Vector3 GetModelSize(this MeshFilter filter)
+    {
+        Vector3 meshSize = filter.mesh.bounds.size;
+        Vector3 localScale = filter.transform.localScale;
+        return new Vector3(meshSize.x * localScale.x, meshSize.y * localScale.y, meshSize.z * localScale.z);
     }
 }
 

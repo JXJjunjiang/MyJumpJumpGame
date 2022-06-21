@@ -27,6 +27,6 @@ public class Panel_EnterGame : UIBase
         DOTween.To((t) =>
         {
             canvasGroup.alpha = t;
-        }, 1f, 0f, 0.5f).onComplete = () => { UIManager.CanTouch = true; DestroyImmediate(gameObject); };
+        }, 1f, 0f, 0.5f).onComplete = () => { UIManager.Inst.CanTouch = true; DestroyImmediate(gameObject); };
     }
 }
