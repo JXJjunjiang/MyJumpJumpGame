@@ -32,7 +32,7 @@ public class Panel_Game : UIBase
     {
         base.Open();
         EventHandler.ScoreTween_Listener += ScoreNumberTween;
-        canvasGroup.SetFade(0);
+        canvasGroup.alpha = 0;
         score.text = DatabaseMgr.Score.ToString();
         UIManager.CanTouch = false;
         DOTween.To((t) =>
