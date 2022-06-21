@@ -67,14 +67,31 @@ public static class UnityExtension
         return uiPos;
     }
 
-    public static TransformValue CopyTranformPosition(this Transform trs)
+    public static TransformValue GetTranformValue(this Transform trs)
     {
         return new TransformValue(trs.localPosition, trs.localRotation, trs.localScale);
     }
 
-    public static RectTransformValue CopyRectTransformValue(this RectTransform trs)
+    public static RectTransformValue GetRectTransformValue(this RectTransform trs)
     {
         return new RectTransformValue(trs.localPosition, trs.localRotation, trs.localScale, trs.sizeDelta);
+    }
+
+    public static void CopyTransformValue(this Transform trs1,Transform trs2)
+    {
+        TransformValue tv = trs1.GetTranformValue();
+        trs2.localPosition = tv.position;
+        trs2.localRotation = tv.rotation;
+        trs2.localScale = tv.scale;
+    }
+
+    public static void CopyRectTransformValue(this RectTransform trs1, RectTransform trs2)
+    {
+        RectTransformValue tv = trs1.GetRectTransformValue();
+        trs2.localPosition = tv.position;
+        trs2.localRotation = tv.rotation;
+        trs2.localScale = tv.scale;
+        trs2.sizeDelta = tv.sizeDetal;
     }
 }
 
