@@ -39,7 +39,7 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     private Transform curPlatform, nextPlatform;
     /// <summary>
-    /// 落点判断区域
+    /// 落点判断区域,0代表当前，1代表下一个
     /// </summary>
     private Rect[] jugeArea;
     /// <summary>
@@ -251,10 +251,14 @@ public class PlayerController : MonoBehaviour
     #region JumpFinish
     void OnJumpFinish()
     {
-        if (IsInArea())
+        if (!IsInSameArea())//如果非同一平台
         {
-            if (!IsInSameArea())
+            /*分为四种情况。1.超出 2.未及 3.完全不在 4.完全在*/
+            bool isBeyond = IsBeyond();
+            bool isMiss = IsMiss();
+            if (!isBeyond && !isMiss)
             {
+                //TODO 完全在
                 curPlatform = GameManager.Inst.SearchPool(nextPlatform.name);
                 Vector3 nextPos = GameManager.Inst.GetNextPlatformPos(curPlatform.position);
                 nextPlatform = GameManager.Inst.SpawnPlatform(nextPos);
@@ -265,14 +269,23 @@ public class PlayerController : MonoBehaviour
                     UIManager.HideUI(UIPanel.Game);
                     UIManager.OpenUI<Panel_HeightTips>(UIPanel.HeightTips);
                 }
-                UIManager.CanTouch = true;
+                GameManager.CanControll = true;
             }
-            GameManager.CanControll = true;
-        }
-        else
-        {
-            GameManager.CanControll = false;
-            PlayerFall(() => { UIManager.OpenUI<Pop_Fail>(UIPanel.Fail); });
+            else if (isBeyond && isMiss)
+            {
+                //TODO 完全不在
+                PlayerFall(() => { UIManager.OpenUI<Pop_Fail>(UIPanel.Fail); });
+                GameManager.CanControll = false;
+            }
+            else if (isBeyond)
+            {
+                //TODO 超出
+            }
+            else if (isMiss)
+            {
+                //TODO 未及
+            }
+            UIManager.CanTouch = true;
         }
     }
 
@@ -300,24 +313,25 @@ public class PlayerController : MonoBehaviour
         Vector2 rectStartPos = new Vector2(pos.x - platformSize.x / 2, pos.z - platformSize.y / 2);
         jugeArea[index].Set(rectStartPos.x, rectStartPos.y, platformSize.x, platformSize.y);
     }
-    
-    bool IsInArea()
-    {
-        for (int i = 0; i < jugeArea.Length; i++)
-        {
-            if (jugeArea[i].Contains(new Vector2(endPoint.x, endPoint.z)))
-            {
-                return true;
-            }
-        }
-        return false;
-    }
 
     bool IsInSameArea()
     {
         return jugeArea[0].Contains(new Vector2(endPoint.x, endPoint.z));
     }
 
+    bool IsBeyond()
+    {
+        Vector2 playerPos = new Vector2(character.localPosition.x, character.localPosition.z);
+        Vector2 playerSize = new Vector2(character.localScale.x, character.localScale.z);
+        var dir = (nextPlatform.localPosition - curPlatform.localPosition).normalized;
+        //jugeArea[1].Contains()
+        return false;
+    }
+
+    bool IsMiss()
+    {
+        return false;
+    }
     #endregion
 
     #region Camera
