@@ -15,11 +15,11 @@ public class Managers : MonoBehaviour,IMgrInit
     {
         DontDestroyOnLoad(this.gameObject);
         managers = new List<IMgrInit>();
-        managers.Add(CreateTargetManager<AudioManager>("AudioManager"));
+        managers.Add(CreateTargetManager<AudioMgr>("AudioManager"));
         managers.Add(CreateTargetManager<DatabaseMgr>("DatabaseManager"));
-        managers.Add(CreateTargetManager<UIManager>("UIManager"));
-        managers.Add(CreateTargetManager<GameManager>("GameManager"));
-        managers.Add(CreateTargetManager<DelayManager>("DelayManager"));
+        managers.Add(CreateTargetManager<UIMgr>("UIManager"));
+        managers.Add(CreateTargetManager<GameMgr>("GameManager"));
+        managers.Add(CreateTargetManager<Factory.CreateFactory>("Factory"));
         foreach (var manager in managers)
         {
             manager.Init();

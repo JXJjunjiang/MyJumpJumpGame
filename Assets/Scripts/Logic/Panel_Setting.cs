@@ -5,7 +5,8 @@ using UnityEngine.UI;
 
 public class Panel_Setting : UIBase
 {
-    private Button maskBtn, bgmBtn, gameBtn, virbrateBtn;
+    private Button maskBtn;
+    private Transform gameBtn, virbrateBtn;
     private AudioSetting audioSet;
 
     protected override void Awake()
@@ -15,23 +16,34 @@ public class Panel_Setting : UIBase
         maskBtn = transform.Find("Mask").GetComponent<Button>();
         maskBtn.AddListener(() =>
         {
-            UIManager.CloseUI(UIPanel.Setting);
+            UIMgr.CloseUI(UIPanel.Setting);
         });
-        bgmBtn = transform.Find("BGMBtn").GetComponent<Button>();
-        bgmBtn.AddListener(() =>
+        gameBtn = transform.Find("GameAudioBtn");
+        SetGameAudioIcon();
+        gameBtn.GetComponent<Button>().AddListener(() =>
         {
-            //TODO 设置setting
+            audioSet.EnableGameMusic = !audioSet.EnableGameMusic;
+            SetGameAudioIcon();
         });
-        gameBtn = transform.Find("GameAudioBtn").GetComponent<Button>();
-        gameBtn.AddListener(() =>
+        virbrateBtn = transform.Find("VirbrateBtn");
+        SetVirbrateIcon();
+        virbrateBtn.GetComponent<Button>().AddListener(() =>
         {
-            //TODO 设置setting
+            audioSet.EnableVibrate = !audioSet.EnableVibrate;
+            SetVirbrateIcon();
         });
-        virbrateBtn = transform.Find("VirbrateBtn").GetComponent<Button>();
-        virbrateBtn.AddListener(() =>
-        {
-            //TODO 设置Setting
-        });
+    }
+
+    void SetGameAudioIcon()
+    {
+        string iconName = audioSet.EnableGameMusic ? "SoundActive" : "SoundDeactive";
+        gameBtn.GetComponent<Image>().sprite = Loader.LoadSprite(iconName);
+    }
+
+    void SetVirbrateIcon()
+    {
+        string iconName = audioSet.EnableVibrate ? "VibActive" : "VibDeactive";
+        virbrateBtn.GetComponent<Image>().sprite = Loader.LoadSprite(iconName);
     }
 
     public override void Close()

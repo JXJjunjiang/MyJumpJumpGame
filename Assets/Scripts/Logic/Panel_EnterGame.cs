@@ -18,7 +18,7 @@ public class Panel_EnterGame : UIBase
         DOTween.To((t) =>
         {
             canvasGroup.alpha = t;
-        }, 0f, 1f, 0.5f).onComplete = () => { UIManager.OpenUI<Panel_Main>(UIPanel.Main);  UIManager.CloseUI(UIPanel.EnterGame);};
+        }, 0f, 1f, 0.5f).onComplete = () => { UIMgr.OpenUI<Panel_Main>(UIPanel.Main);  UIMgr.CloseUI(UIPanel.EnterGame);};
     }
 
     public override void Close()
@@ -27,6 +27,6 @@ public class Panel_EnterGame : UIBase
         DOTween.To((t) =>
         {
             canvasGroup.alpha = t;
-        }, 1f, 0f, 0.5f).onComplete = () => { UIManager.Inst.CanTouch = true; DestroyImmediate(gameObject); };
+        }, 1f, 0f, 0.5f).onComplete = () => { UIMgr.Inst.CanTouch = true; DestroyImmediate(gameObject); };
     }
 }

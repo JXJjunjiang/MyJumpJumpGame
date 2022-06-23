@@ -26,8 +26,8 @@ public class Panel_HeightTips : UIBase
         expandBtn.RequireComponent<Button>().AddListener(ExpandBtnClick);
         maskBtn.AddListener(() =>
         {
-            UIManager.CloseUI(UIPanel.HeightTips);
-            UIManager.OpenUI<Panel_Game>(UIPanel.Game);
+            UIMgr.CloseUI(UIPanel.HeightTips);
+            UIMgr.OpenUI<Panel_Game>(UIPanel.Game);
         });
     }
 

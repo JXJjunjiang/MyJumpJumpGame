@@ -16,7 +16,7 @@ public class Panel_MoreInfo : UIBase
         rectMask = transform.Find("RectMask").GetComponent<RectTransform>();
         maskBtn.AddListener(() =>
         {
-            UIManager.CloseUI(UIPanel.MoreInfo);
+            UIMgr.CloseUI(UIPanel.MoreInfo);
         });
         rectMask.sizeDelta = new Vector2(rectMask.sizeDelta.x, MinY);
     }
@@ -24,20 +24,20 @@ public class Panel_MoreInfo : UIBase
     public override void Open()
     {
         base.Open();
-        UIManager.Inst.CanTouch = false;
+        UIMgr.Inst.CanTouch = false;
         DOTween.To((t) =>
         {
             rectMask.sizeDelta = new Vector2(rectMask.sizeDelta.x, MaxY * t);
-        }, 0, 1, 0.3f).onComplete = () => UIManager.Inst.CanTouch = true;
+        }, 0, 1, 0.3f).onComplete = () => UIMgr.Inst.CanTouch = true;
     }
 
     public override void Close()
     {
         base.Close();
-        UIManager.Inst.CanTouch = false;
+        UIMgr.Inst.CanTouch = false;
         DOTween.To((t) =>
         {
             rectMask.sizeDelta = new Vector2(rectMask.sizeDelta.x, MaxY * t);
-        }, 1, 0, 0.3f).onComplete = () => { UIManager.Inst.CanTouch = true; DestroyImmediate(gameObject); };
+        }, 1, 0, 0.3f).onComplete = () => { UIMgr.Inst.CanTouch = true; DestroyImmediate(gameObject); };
     }
 }

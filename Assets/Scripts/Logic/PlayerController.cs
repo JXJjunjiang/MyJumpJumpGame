@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
-using DG.Tweening.Plugins.Options;
+using Factory;
 
 public class PlayerController : MonoBehaviour
 {
@@ -29,7 +29,7 @@ public class PlayerController : MonoBehaviour
     /// <summary>
     /// platform水平大小
     /// </summary>
-    private static Vector2 platformSize = new Vector2(GameManager.PlatformPrefabSize.x, GameManager.PlatformPrefabSize.z);
+    private static Vector2 platformSize = new Vector2(GameMgr.PlatformPrefabSize.x, GameMgr.PlatformPrefabSize.z);
     /// <summary>
     /// 角色失败的高度
     /// </summary>
@@ -75,7 +75,7 @@ public class PlayerController : MonoBehaviour
     {
         InitPlatform();
         isPress = false;
-        GameManager.Inst.CanControll = true;
+        GameMgr.Inst.CanControll = true;
         jumpTime = 0;
         InitPlayer();
         jugeArea = new Rect[2] { new Rect(), new Rect() };
@@ -87,14 +87,17 @@ public class PlayerController : MonoBehaviour
 
     void InitPlayer()
     {
+        Vector3 playerPos = new Vector3(0, curPlatform.localScale.y + character.localScale.y, 0);
         if (character == null)
         {
-            var obj = Instantiate<GameObject>(Loader.LoadGame("Player"));
-            character = obj.transform;
-            character.SetParent(transform);
+            PlayerInfo info = new PlayerInfo(DatabaseMgr.CharacterID, transform, Vector3.one, playerPos);
+            character = CreateFactory.Inst.Create(FactoryType.Character, info).transform;
         }
-        character.Reset();
-        character.position = new Vector3(0, curPlatform.localScale.y + character.localScale.y, 0);
+        else
+        {
+            character.Reset();
+            character.position = playerPos;
+        }
     }
 
     void InitPlatform()
@@ -104,14 +107,14 @@ public class PlayerController : MonoBehaviour
             DestroyImmediate(curPlatform.gameObject);
             curPlatform = null;
         }
-        curPlatform = GameManager.Inst.SpawnPlatform(Vector3.zero);
+        curPlatform = GameMgr.Inst.SpawnPlatform(Vector3.zero);
         if (nextPlatform != null)
         {
             DestroyImmediate(nextPlatform.gameObject);
             nextPlatform = null;
         }
-        Vector3 nextPos = GameManager.Inst.GetNextPlatformPos(Vector3.zero);
-        nextPlatform = GameManager.Inst.SpawnPlatform(nextPos);
+        Vector3 nextPos = GameMgr.Inst.GetNextPlatformPos(Vector3.zero);
+        nextPlatform = GameMgr.Inst.SpawnPlatform(nextPos);
     }
 
     #region OnPress
@@ -149,7 +152,7 @@ public class PlayerController : MonoBehaviour
 
     void PressUp()
     {
-        UIManager.Inst.CanTouch = false;
+        UIMgr.Inst.CanTouch = false;
         Jump();
         PlatformTween();
         isPress = false;
@@ -158,7 +161,7 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        if (!GameManager.Inst.CanControll)
+        if (!GameMgr.Inst.CanControll)
             return;
 
         if (isPress)
@@ -260,42 +263,42 @@ public class PlayerController : MonoBehaviour
             {
                 //TODO 完全在
                 Debug.Log("完全在");
-                curPlatform = GameManager.Inst.SearchPool(nextPlatform.name);
-                Vector3 nextPos = GameManager.Inst.GetNextPlatformPos(curPlatform.position);
-                nextPlatform = GameManager.Inst.SpawnPlatform(nextPos);
+                curPlatform = GameMgr.Inst.SearchPool(nextPlatform.name);
+                Vector3 nextPos = GameMgr.Inst.GetNextPlatformPos(curPlatform.position);
+                nextPlatform = GameMgr.Inst.SpawnPlatform(nextPos);
                 CameraFocusJog();
                 EventHandler.ScoreTween_Dispatch(1);
                 if (DatabaseMgr.IsMatchAnyHeight())
                 {
-                    UIManager.HideUI(UIPanel.Game);
-                    UIManager.OpenUI<Panel_HeightTips>(UIPanel.HeightTips);
+                    UIMgr.HideUI(UIPanel.Game);
+                    UIMgr.OpenUI<Panel_HeightTips>(UIPanel.HeightTips);
                 }
-                GameManager.Inst.CanControll = true;
+                GameMgr.Inst.CanControll = true;
             }
             else if (isBeyond && isMiss)
             {
                 //TODO 完全不在
                 Debug.Log("完全不在");
-                PlayerFall(() => { UIManager.OpenUI<Pop_Fail>(UIPanel.Fail); });
-                GameManager.Inst.CanControll = false;
+                PlayerFall(() => { UIMgr.OpenUI<Pop_Fail>(UIPanel.Fail); });
+                GameMgr.Inst.CanControll = false;
             }
             else if (isBeyond)
             {
                 //TODO 超出
                 Debug.Log("超出");
                 PlayerForwardRotate();
-                PlayerFall(() => { UIManager.OpenUI<Pop_Fail>(UIPanel.Fail); });
-                GameManager.Inst.CanControll = false;
+                PlayerFall(() => { UIMgr.OpenUI<Pop_Fail>(UIPanel.Fail); });
+                GameMgr.Inst.CanControll = false;
             }
             else if (isMiss)
             {
                 //TODO 未及
                 Debug.Log("未及");
                 PlayerBackRotate();
-                PlayerFall(() => { UIManager.OpenUI<Pop_Fail>(UIPanel.Fail); });
-                GameManager.Inst.CanControll = false;
+                PlayerFall(() => { UIMgr.OpenUI<Pop_Fail>(UIPanel.Fail); });
+                GameMgr.Inst.CanControll = false;
             }
-            UIManager.Inst.CanTouch = true;
+            UIMgr.Inst.CanTouch = true;
         }
     }
 

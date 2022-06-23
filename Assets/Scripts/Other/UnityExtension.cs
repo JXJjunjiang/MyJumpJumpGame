@@ -36,7 +36,7 @@ public static class UnityExtension
         trs.localScale = Vector3.one;
         trs.localPosition = Vector3.zero;
         trs.localRotation = Quaternion.identity;
-        trs.sizeDelta = new Vector2(100f,100f);
+        trs.sizeDelta = Vector2.zero; ;
     }
 
     public static void SetFade(this Text text,float alpha)
@@ -63,7 +63,7 @@ public static class UnityExtension
     {
         var screenPos = Camera.main.WorldToScreenPoint(worldPos);
         Vector2 uiPos = Vector2.zero;
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(uiParent, screenPos, UIManager.Inst.UICamera, out uiPos);
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(uiParent, screenPos, UIMgr.Inst.UICamera, out uiPos);
         return uiPos;
     }
 

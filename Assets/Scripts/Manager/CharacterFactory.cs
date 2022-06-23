@@ -13,7 +13,18 @@ public class CharacterFactory : IFactory, IDisposable
     }
     public GameObject Create(ItemInfoBase itemInfo)
     {
-        return new GameObject();
+        GameObject loadObj = Loader.LoadGame(string.Format("Player_{0}", itemInfo.id));
+        GameObject spawnObj = MonoBehaviour.Instantiate(loadObj);
+        SetCharacterInfo(spawnObj.transform, itemInfo as PlayerInfo);
+        return spawnObj;
+    }
+
+    private void SetCharacterInfo(Transform trs,PlayerInfo info)
+    {
+        trs.parent = info.parent;
+        trs.name = "Player_" + info.id;
+        trs.localScale = info.scale;
+        trs.localPosition = info.position;
     }
 
     public void Dispose()

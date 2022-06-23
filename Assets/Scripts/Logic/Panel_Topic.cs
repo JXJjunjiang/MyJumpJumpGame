@@ -22,7 +22,7 @@ public class Panel_Topic : UIBase
         enviromentSelectBorders = new List<GameObject>();
         maskBtn.AddListener(() =>
         {
-            UIManager.CloseUI(UIPanel.Topic);
+            UIMgr.CloseUI(UIPanel.Topic);
         });
     }
 

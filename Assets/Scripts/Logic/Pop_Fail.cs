@@ -15,9 +15,9 @@ public class Pop_Fail : UIBase
         admitBtn = transform.Find("AdmitBtn").RequireComponent<Button>();
         admitBtn.AddListener(() =>
         {
-            UIManager.CloseUI(UIPanel.Fail);
-            UIManager.CloseUI(UIPanel.Game);
-            UIManager.OpenUI<Panel_Main>(UIPanel.Main);
+            UIMgr.CloseUI(UIPanel.Fail);
+            UIMgr.CloseUI(UIPanel.Game);
+            UIMgr.OpenUI<Panel_Main>(UIPanel.Main);
         });
     }
 

@@ -24,8 +24,8 @@ public class Panel_Game : UIBase
         exitBtn = transform.Find("ExitBtn").GetComponent<Button>();
         exitBtn.AddListener(() =>
         {
-            UIManager.CloseUI(UIPanel.Game);
-            UIManager.OpenUI<Panel_Main>(UIPanel.Main);
+            UIMgr.CloseUI(UIPanel.Game);
+            UIMgr.OpenUI<Panel_Main>(UIPanel.Main);
         });
     }
     public override void Open()
@@ -34,11 +34,11 @@ public class Panel_Game : UIBase
         EventHandler.ScoreTween_Listener += ScoreNumberTween;
         canvasGroup.alpha = 0;
         score.text = DatabaseMgr.Score.ToString();
-        UIManager.Inst.CanTouch = false;
+        UIMgr.Inst.CanTouch = false;
         DOTween.To((t) =>
         {
             canvasGroup.alpha = t;
-        }, 0f, 1f, 0.3f).onComplete = () => UIManager.Inst.CanTouch = true;
+        }, 0f, 1f, 0.3f).onComplete = () => UIMgr.Inst.CanTouch = true;
     }
 
     public override void Close()
