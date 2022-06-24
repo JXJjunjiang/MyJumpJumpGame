@@ -5,9 +5,9 @@ using UnityEngine.UI;
 
 public class Panel_Setting : UIBase
 {
-    private Button maskBtn;
-    private Transform gameBtn, virbrateBtn;
-    private AudioSetting audioSet;
+    private Button maskBtn = null;
+    private Transform gameBtn = null, virbrateBtn = null;
+    private AudioSetting audioSet = null;
 
     protected override void Awake()
     {
@@ -16,7 +16,7 @@ public class Panel_Setting : UIBase
         maskBtn = transform.Find("Mask").GetComponent<Button>();
         maskBtn.AddListener(() =>
         {
-            UIMgr.CloseUI(UIPanel.Setting);
+            UIMgr.CloseUI(UIPanelType.Setting);
         });
         gameBtn = transform.Find("GameAudioBtn");
         SetGameAudioIcon();

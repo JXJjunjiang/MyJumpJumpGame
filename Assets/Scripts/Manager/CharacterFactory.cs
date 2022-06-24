@@ -37,6 +37,5 @@ public class CharacterFactory : IFactory, IDisposable
             }
         }
         createCaches.Clear();
-        createCaches = null;
     }
 }

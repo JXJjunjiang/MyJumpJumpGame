@@ -23,20 +23,19 @@ public class PlatformFactory : IFactory,IPool, IDisposable
             Recycle(createCaches.Dequeue());
         }
 
-        GameObject tempObj = null;
-        if (recycleCaches.Count>0)
-        {
-            tempObj = Request();
-        }
-        else
-        {
-            tempObj=new GameObject();
-        }
+        GameObject tempObj = recycleCaches.Count > 0 ? Request() : MonoBehaviour.Instantiate(Loader.LoadGame(string.Format("Platform_{0}", itemInfo.id)));
         createCaches.Enqueue(tempObj);
-        tempObj.name = "platform" + index;
         ++index;
+        SetPlatformInfo(tempObj.transform, itemInfo as PlatformInfo);
         return tempObj;
+    }
 
+    void SetPlatformInfo(Transform trs,PlatformInfo info)
+    {
+        trs.parent = info.parent;
+        trs.name = "Platform_" + index;
+        trs.localScale = info.scale;
+        trs.localPosition = info.position;
     }
 
     public GameObject Request()
@@ -59,7 +58,6 @@ public class PlatformFactory : IFactory,IPool, IDisposable
             }
         }
         createCaches.Clear();
-        createCaches = null;
 
         using (var e = recycleCaches.GetEnumerator())
         {
@@ -69,6 +67,5 @@ public class PlatformFactory : IFactory,IPool, IDisposable
             }
         }
         recycleCaches.Clear();
-        recycleCaches = null;
     }
 }

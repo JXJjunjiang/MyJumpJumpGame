@@ -5,7 +5,8 @@ using DG.Tweening;
 
 public class Panel_EnterGame : UIBase
 {
-    private CanvasGroup canvasGroup;
+    private CanvasGroup canvasGroup = null;
+
     protected override void Awake()
     {
         base.Awake();
@@ -14,11 +15,15 @@ public class Panel_EnterGame : UIBase
 
     public override void Open()
     {
-        canvasGroup.alpha = 0;
+        canvasGroup.alpha = 1;
         DOTween.To((t) =>
         {
-            canvasGroup.alpha = t;
-        }, 0f, 1f, 0.5f).onComplete = () => { UIMgr.OpenUI<Panel_Main>(UIPanel.Main);  UIMgr.CloseUI(UIPanel.EnterGame);};
+            
+        }, 0f, 1f, 1f).onComplete = () => 
+        {
+            UIMgr.OpenUI<Panel_Main>(UIPanelType.Main);
+            UIMgr.CloseUI(UIPanelType.EnterGame);
+        };
     }
 
     public override void Close()
@@ -27,6 +32,10 @@ public class Panel_EnterGame : UIBase
         DOTween.To((t) =>
         {
             canvasGroup.alpha = t;
-        }, 1f, 0f, 0.5f).onComplete = () => { UIMgr.Inst.CanTouch = true; DestroyImmediate(gameObject); };
+        }, 1f, 0f, 0.5f).onComplete = () => 
+        {
+            UIMgr.Inst.CanTouch = true;
+            DestroyImmediate(gameObject);
+        };
     }
 }

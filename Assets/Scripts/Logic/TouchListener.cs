@@ -4,13 +4,15 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
-public delegate void Pointer();
+
 [RequireComponent(typeof(UnityEngine.UI.Image))]
 public class TouchListener : MonoBehaviour,IPointerDownHandler,IPointerUpHandler
 {
-    private Image _img;
-    public Pointer PointerDown;
-    public Pointer PointerUp;
+    public delegate void Pointer();
+
+    private Image _img = null;
+    public Pointer PointerDown = null;
+    public Pointer PointerUp = null;
 
     private void Awake()
     {

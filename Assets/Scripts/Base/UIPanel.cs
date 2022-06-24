@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum UIPanel
+public enum UIPanelType
 {
     Main = 1,
     Setting,

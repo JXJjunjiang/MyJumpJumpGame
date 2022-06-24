@@ -8,7 +8,7 @@ public class Loader : MonoBehaviour
     private const string UIPath = "Prefab/UI/";
     private const string SpritePath = "Sprite/";
     private const string AudioPath = "Audio/";
-    private const string AudioSettingPath = "GameAudio";
+    private const string AudioSettingPath = "Aduio/GameAudio";
 
     public static GameObject LoadUI(string uiName)
     {

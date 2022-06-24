@@ -2,71 +2,53 @@
 using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
+using Factory;
 
 
 public class GameMgr : MonoSingleton<GameMgr>,IMgrInit
 {
-    /// <summary>
-    /// 跳跃平台预制体名称
-    /// </summary>
-    private static string PlatformPrefabName = "Platform";
-    /// <summary>
-    /// 跳跃平台预制体尺寸
-    /// </summary>
-    public static Vector3 PlatformPrefabSize = new Vector3(3f, 10f, 3f);
-    /// <summary>
-    /// 生成平台在X轴上的间隔
-    /// </summary>
-    private static Vector2 ClampSpawnX = new Vector2(-10f, -5f);
-    /// <summary>
-    /// 生成平台在Z轴上的间隔
-    /// </summary>
-    private static Vector2 ClampSpawnZ = new Vector2(5f, 10f);
-    /// <summary>
-    /// 平台Y轴位置
-    /// </summary>
-    private static float SpawnY = PlatformPrefabSize.y / 2f;
-    /// <summary>
-    /// 平台对象池的最大容量
-    /// </summary>
-    private const int PoolMaxItemsCount = 5;
+    public static Vector3 PlatformPrefabSize = new Vector3(3f, 10f, 3f);// 跳跃平台预制体尺寸
+    private static Vector2 ClampSpawnX = new Vector2(-10f, -5f);// 生成平台在X轴上的间隔
+    private static Vector2 ClampSpawnZ = new Vector2(5f, 10f);// 生成平台在Z轴上的间隔
+    private static float SpawnY = PlatformPrefabSize.y / 2f;// 平台Y轴位置
 
+    private bool canControll = false;
     private Transform gameRoot = null;
-    private GameObject platformPrefab = null;
     private Transform platformRoot = null;
     private Transform playerRoot = null;
-    private Queue<Transform> spawnPlatforms;
-    private int platformIndex = 0;
+    private Stack<Transform> spawnPlatforms = null;
 
-    private bool _canControll;
     /// <summary>
     /// 是否可控制
     /// </summary>
     public bool CanControll
     {
-        get => _canControll;
-        set => _canControll = value;
+        get => canControll;
+        set => canControll = value;
     }
 
 
     public void Init()
     {
-        platformPrefab = Loader.LoadGame(PlatformPrefabName);
-        spawnPlatforms = new Queue<Transform>(PoolMaxItemsCount);
-        EventHandler.GameStart_Listener += InitGameRoot;
-        EventHandler.GameStart_Listener += InitData;
-        EventHandler.GameStart_Listener += InitPlayer;
+        spawnPlatforms = new Stack<Transform>();
+    }
+
+    public void GameStart()
+    {
+        InitGameRoot();
+        InitData();
+        InitPlayer();
+    }
+
+    public void GameEnd()
+    {
+        CreateFactory.Inst.Clear();
+        spawnPlatforms.Clear();
     }
 
     private void InitData()
     {
-        _canControll = false;
-        platformIndex = 0;
-        while (spawnPlatforms.Count>0)
-        {
-            DestroyImmediate(spawnPlatforms.Dequeue().gameObject);
-        }
-        spawnPlatforms.Clear();
+        canControll = false;
     }
 
     private void InitPlayer()
@@ -96,49 +78,36 @@ public class GameMgr : MonoSingleton<GameMgr>,IMgrInit
         gameRoot.Reset();
     }
 
-    private void GameExit()
+    #region SpawnPlatform
+    public Transform GetFirstPlatform()
     {
-
+        return SpawnPlatform(Vector3.zero);
     }
 
-    public Transform SpawnPlatform(Vector3 pos)
+    public Transform GetCurrentPlatform()
     {
-        Transform result = PoolDecollect();
-        result.SetParent(platformRoot);
-        result.name = string.Format("{0}[{1}]", PlatformPrefabName, platformIndex);
-        ++platformIndex;
-        result.Reset();
-        result.localScale = PlatformPrefabSize;
-        result.localPosition = new Vector3(pos.x, -SpawnY, pos.z);
-        _canControll = false;
-        result.DOLocalMoveY(SpawnY, 0.2f).onComplete = () => _canControll = true;//生成平台过程中，不允许玩家操作
+        return SearchPool(spawnPlatforms.Peek().name);
+    }
+
+    public Transform GetNextPlatform()
+    {
+        Vector3 pos = GetNextPlatformPos(SearchPool(spawnPlatforms.Peek().name).localPosition);
+        return SpawnPlatform(pos);
+    }
+    #endregion
+
+    #region SpawnBaseMethod
+    private Transform SpawnPlatform(Vector3 pos)
+    {
+        PlatformInfo info = new PlatformInfo(DatabaseMgr.Inst.EnvironmentID, platformRoot, PlatformPrefabSize, new Vector3(pos.x, -SpawnY, pos.z));
+        Transform result = CreateFactory.Inst.Create(FactoryType.Platform, info).transform;
+        spawnPlatforms.Push(result);
+        canControll = false;
+        result.DOLocalMoveY(SpawnY, 0.2f).onComplete = () => canControll = true;
         return result;
     }
 
-    public void PoolCollect(Transform platform)
-    {
-        if (spawnPlatforms!=null)
-        {
-            spawnPlatforms.Enqueue(platform);
-        }
-    }
-
-    public Transform PoolDecollect()
-    {
-        Transform result = null;
-        //if (spawnPlatforms.Count>=PoolMaxItemsCount)
-        //{
-        //    result = spawnPlatforms.Dequeue();
-        //}
-        //else
-        //{
-            result = Instantiate<Transform>(platformPrefab.transform);
-            spawnPlatforms.Enqueue(result);
-        //}
-        return result;
-    }
-
-    public Vector3 GetNextPlatformPos(Vector3 prePos)
+    private Vector3 GetNextPlatformPos(Vector3 prePos)
     {
         Vector3 result = Vector3.zero;
         float x = 0;
@@ -151,11 +120,11 @@ public class GameMgr : MonoSingleton<GameMgr>,IMgrInit
         {
             z = Random.Range(ClampSpawnZ.x, ClampSpawnZ.y);
         }
-        result.Set(prePos.x + x, SpawnY + DatabaseMgr.Score, prePos.z + z);
+        result.Set(prePos.x + x, SpawnY + DatabaseMgr.Inst.Height, prePos.z + z);
         return result;
     }
 
-    public Transform SearchPool(string name)
+    private Transform SearchPool(string name)
     {
         using (var e=spawnPlatforms.GetEnumerator())
         {
@@ -169,11 +138,11 @@ public class GameMgr : MonoSingleton<GameMgr>,IMgrInit
         }
         return null;
     }
+    #endregion
 
     public void UnInit()
     {
-        EventHandler.GameStart_Listener -= InitGameRoot;
-        EventHandler.GameStart_Listener -= InitData;
-        EventHandler.GameStart_Listener -= InitPlayer;
+        CreateFactory.Inst.Clear();
+        spawnPlatforms.Clear();
     }
 }

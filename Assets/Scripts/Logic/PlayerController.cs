@@ -6,71 +6,37 @@ using Factory;
 
 public class PlayerController : MonoBehaviour
 {
-    /// <summary>
-    /// Q弹的最大高度
-    /// </summary>
-    private readonly Vector3 BumpMaxOffset = new Vector3(0, 0.2f, 0);
-    /// <summary>
-    /// platform压缩与弹起的高度限制
-    /// </summary>
-    private const float MinScaleY=0.7f, MaxScaleY = 1f;
-    /// <summary>
-    /// platform压缩与弹起的速度
-    /// </summary>
-    private const float YDownSpeed = 0.005f, YUpSpeed = 0.05f;
-    /// <summary>
-    /// 角色跳起的最高高度
-    /// </summary>
-    private const float JumpY = 8f;
-    /// <summary>
-    /// 角色跳起的横向速度
-    /// </summary>
-    private const float JumpHorizontalSpeed = 25f;
-    /// <summary>
-    /// platform水平大小
-    /// </summary>
-    private static Vector2 platformSize = new Vector2(GameMgr.PlatformPrefabSize.x, GameMgr.PlatformPrefabSize.z);
-    /// <summary>
-    /// 角色失败的高度
-    /// </summary>
-    private const float FailedPosY = 1f;
-    /// <summary>
-    /// 当前plat和下一个plat
-    /// </summary>
-    private Transform curPlatform, nextPlatform;
-    /// <summary>
-    /// 落点判断区域,0代表当前，1代表下一个
-    /// </summary>
-    private Rect[] jugeArea;
-    /// <summary>
-    /// 角色
-    /// </summary>
-    private Transform character;
-    /// <summary>
-    /// 相机到角色的方向
-    /// </summary>
-    private Vector3 cam2playerDir;
-    /// <summary>
-    /// 相机到角色的距离
-    /// </summary>
-    private float cam2playerDistance;
-
-    private bool isPress;
-    private Vector3 startPoint, midPoint, endPoint;
-    private float jumpTime = 0;
-    private Transform cameraTrs;
-    private Vector3 originPos;
-    private Vector3 cameraPos;
+    private const float MinScaleY=0.7f, MaxScaleY = 1f;// platform压缩与弹起的高度限制
+    private const float YDownSpeed = 0.005f, YUpSpeed = 0.05f;// platform压缩与弹起的速度
+    private const float JumpY = 8f;// 角色跳起的最高高度
+    private const float JumpHorizontalSpeed = 25f;// 角色跳起的横向速度
+    private const float FailedPosY = 1f;// 角色失败下坠的高度
     private const float endPointMoveSpeed = 0.05f;
 
+    private static Vector2 platformSize = new Vector2(GameMgr.PlatformPrefabSize.x, GameMgr.PlatformPrefabSize.z);// platform水平大小
+
+    private float jumpTime = 0f;//角色跳跃动画需要的时长
+    private float cam2playerDistance=0f;//相机与角色之间的距离
+    private bool isPress = false;
+    private Vector3 startPoint, midPoint, endPoint;//贝塞尔曲线的三个点
+    private Vector3 originPlatformPos;//platform初始位置
+    private Vector3 cameraOriginPos;//相机初始位置
+    private Vector3 cam2playerDir;//相机与角色之间的方向
+    private Rect[] jugeArea = null;// 落点判断区域,0代表current，1代表next
+
+    private Transform cameraTrs = null;
+    private Transform curPlatform = null, nextPlatform = null;
+    private Transform character = null;
+    
     private void Awake()
     {
         if (cameraTrs == null)
         {
             cameraTrs = Camera.main.transform;
         }
-        cameraPos = cameraTrs.position;
+        cameraOriginPos = cameraTrs.position;
     }
+
     public void Init()
     {
         InitPlatform();
@@ -87,16 +53,17 @@ public class PlayerController : MonoBehaviour
 
     void InitPlayer()
     {
-        Vector3 playerPos = new Vector3(0, curPlatform.localScale.y + character.localScale.y, 0);
         if (character == null)
         {
-            PlayerInfo info = new PlayerInfo(DatabaseMgr.CharacterID, transform, Vector3.one, playerPos);
+            PlayerInfo info = new PlayerInfo(DatabaseMgr.Inst.CharacterID, transform, Vector3.one, Vector3.zero);
             character = CreateFactory.Inst.Create(FactoryType.Character, info).transform;
+            Vector3 playerPos = new Vector3(0, curPlatform.localScale.y + character.localScale.y, 0);
+            character.localPosition = playerPos;
         }
         else
         {
             character.Reset();
-            character.position = playerPos;
+            character.localPosition = new Vector3(0, curPlatform.localScale.y + character.localScale.y, 0);
         }
     }
 
@@ -107,14 +74,14 @@ public class PlayerController : MonoBehaviour
             DestroyImmediate(curPlatform.gameObject);
             curPlatform = null;
         }
-        curPlatform = GameMgr.Inst.SpawnPlatform(Vector3.zero);
+        curPlatform = GameMgr.Inst.GetFirstPlatform();
+
         if (nextPlatform != null)
         {
             DestroyImmediate(nextPlatform.gameObject);
             nextPlatform = null;
         }
-        Vector3 nextPos = GameMgr.Inst.GetNextPlatformPos(Vector3.zero);
-        nextPlatform = GameMgr.Inst.SpawnPlatform(nextPos);
+        nextPlatform = GameMgr.Inst.GetNextPlatform();
     }
 
     #region OnPress
@@ -137,7 +104,7 @@ public class PlayerController : MonoBehaviour
     void PlayerFollow()
     {
         //PlayerPos=platform高度/2f+人物高度/2f
-        float platY = curPlatform.localPosition.y + curPlatform.localScale.y / 2f + character.localScale.y;//TODO 这个模型不知道为什么需要多加0.5，所以暂时不/2
+        float platY = curPlatform.localPosition.y + curPlatform.localScale.y / 2f + character.localScale.y;
         character.localPosition = new Vector3(character.localPosition.x, platY, character.localPosition.z);
     }
 
@@ -146,7 +113,7 @@ public class PlayerController : MonoBehaviour
         RefreshThreePoint();
         GetCurrentArea();
         GetNextArea();
-        originPos = curPlatform.localPosition;
+        originPlatformPos = curPlatform.localPosition;
         isPress = true;
     }
 
@@ -186,8 +153,8 @@ public class PlayerController : MonoBehaviour
     void PlatformTween()
     {
         Sequence seq = DOTween.Sequence();
-        seq.Append(curPlatform.DOLocalMoveY(originPos.y-0.2f,0.15f));
-        seq.Append(curPlatform.DOLocalMoveY(originPos.y, 0.2f));
+        seq.Append(curPlatform.DOLocalMoveY(originPlatformPos.y - 0.2f, 0.15f));
+        seq.Append(curPlatform.DOLocalMoveY(originPlatformPos.y, 0.2f));
         seq.Play();
     }
 
@@ -254,48 +221,42 @@ public class PlayerController : MonoBehaviour
     #region JumpFinish
     void OnJumpFinish()
     {
-        if (!IsInSameArea())//如果非同一平台
+        if (!IsInSameArea())
         {
-            /*分为四种情况。1.超出 2.未及 3.完全不在 4.完全在*/
             bool isBeyond = IsBeyond();
             bool isMiss = IsMiss();
             if (!isBeyond && !isMiss)
             {
-                //TODO 完全在
                 Debug.Log("完全在");
-                curPlatform = GameMgr.Inst.SearchPool(nextPlatform.name);
-                Vector3 nextPos = GameMgr.Inst.GetNextPlatformPos(curPlatform.position);
-                nextPlatform = GameMgr.Inst.SpawnPlatform(nextPos);
+                curPlatform = GameMgr.Inst.GetCurrentPlatform();
+                nextPlatform = GameMgr.Inst.GetNextPlatform();
                 CameraFocusJog();
                 EventHandler.ScoreTween_Dispatch(1);
-                if (DatabaseMgr.IsMatchAnyHeight())
+                if (DatabaseMgr.Inst.IsMatchAnyHeight())
                 {
-                    UIMgr.HideUI(UIPanel.Game);
-                    UIMgr.OpenUI<Panel_HeightTips>(UIPanel.HeightTips);
+                    UIMgr.HideUI(UIPanelType.Game);
+                    UIMgr.OpenUI<Panel_HeightTips>(UIPanelType.HeightTips);
                 }
                 GameMgr.Inst.CanControll = true;
             }
-            else if (isBeyond && isMiss)
+            else
             {
-                //TODO 完全不在
-                Debug.Log("完全不在");
-                PlayerFall(() => { UIMgr.OpenUI<Pop_Fail>(UIPanel.Fail); });
-                GameMgr.Inst.CanControll = false;
-            }
-            else if (isBeyond)
-            {
-                //TODO 超出
-                Debug.Log("超出");
-                PlayerForwardRotate();
-                PlayerFall(() => { UIMgr.OpenUI<Pop_Fail>(UIPanel.Fail); });
-                GameMgr.Inst.CanControll = false;
-            }
-            else if (isMiss)
-            {
-                //TODO 未及
-                Debug.Log("未及");
-                PlayerBackRotate();
-                PlayerFall(() => { UIMgr.OpenUI<Pop_Fail>(UIPanel.Fail); });
+                if (isBeyond && isMiss)
+                {
+                    Debug.Log("完全不在");
+                }
+                else if (isBeyond)
+                {
+                    Debug.Log("超出");
+                    PlayerForwardRotate();
+                }
+                else if (isMiss)
+                {
+                    Debug.Log("未及");
+                    PlayerBackRotate();
+                }
+                PlayerFall(() => { UIMgr.OpenUI<Pop_Fail>(UIPanelType.Fail); });
+                DatabaseMgr.Inst.Height = 0;
                 GameMgr.Inst.CanControll = false;
             }
             UIMgr.Inst.CanTouch = true;
@@ -357,7 +318,6 @@ public class PlayerController : MonoBehaviour
         Vector2 dir = (new Vector2(nextPlatform.localPosition.x, nextPlatform.localPosition.z) - new Vector2(curPlatform.localPosition.x, curPlatform.localPosition.z)).normalized;
         Vector3 modelSize = character.GetComponent<MeshFilter>().GetModelSize();
         Vector2 point = playerPos + (playerSize * new Vector2(modelSize.x, modelSize.z) * 0.5f).x * dir;
-        Debug.Log(point);
         return !jugeArea[1].Contains(point);
     }
 
@@ -368,32 +328,37 @@ public class PlayerController : MonoBehaviour
         Vector2 dir = (new Vector2(nextPlatform.localPosition.x, nextPlatform.localPosition.z) - new Vector2(curPlatform.localPosition.x, curPlatform.localPosition.z)).normalized;
         Vector3 modelSize = character.GetComponent<MeshFilter>().GetModelSize();
         Vector2 point = playerPos - (playerSize * new Vector2(modelSize.x, modelSize.z) * 0.5f).x * dir;
-        Debug.Log(point);
         return !jugeArea[1].Contains(point);
     }
     #endregion
 
     #region Camera
+    void InitCameraPos()
+    {
+        if (cameraTrs == null)
+        {
+            cameraTrs = Camera.main.transform;
+        }
+        cam2playerDir = (cameraOriginPos - character.position).normalized;
+        cam2playerDistance = Vector3.Distance(character.position, cameraOriginPos);
+    }
+
+    /// <summary>
+    /// 相机注视缓动
+    /// </summary>
     void CameraFocusJog()
     {
         Vector3 camEndPos = character.position + cam2playerDistance * cam2playerDir;
         cameraTrs.DOMove(camEndPos, 0.5f);
     }
 
+    /// <summary>
+    /// 相机直接注视
+    /// </summary>
     void CameraFocus()
     {
         Vector3 camEndPos = character.position + cam2playerDistance * cam2playerDir;
         cameraTrs.position = camEndPos;
-    }
-
-    void InitCameraPos()
-    {
-        if (cameraTrs==null)
-        {
-            cameraTrs = Camera.main.transform;
-        }
-        cam2playerDir = (cameraPos - character.position).normalized;
-        cam2playerDistance = Vector3.Distance(character.position, cameraPos);
     }
     #endregion
 

@@ -10,11 +10,11 @@ public class Panel_HeightTips : UIBase
     private const float MaxHeight = 500f;
 
     private bool isExpand = false;
-    private RectTransform expandBtn;
-    private RectTransform rectMask;
-    private RectTransform bg;
-    private RectTransform label;
-    private Button maskBtn;
+    private RectTransform expandBtn = null;
+    private RectTransform rectMask = null;
+    private RectTransform bg = null;
+    private RectTransform label = null;
+    private Button maskBtn = null;
     protected override void Awake()
     {
         base.Awake();
@@ -26,8 +26,8 @@ public class Panel_HeightTips : UIBase
         expandBtn.RequireComponent<Button>().AddListener(ExpandBtnClick);
         maskBtn.AddListener(() =>
         {
-            UIMgr.CloseUI(UIPanel.HeightTips);
-            UIMgr.OpenUI<Panel_Game>(UIPanel.Game);
+            UIMgr.CloseUI(UIPanelType.HeightTips);
+            UIMgr.OpenUI<Panel_Game>(UIPanelType.Game);
         });
     }
 
@@ -39,7 +39,7 @@ public class Panel_HeightTips : UIBase
         bg.sizeDelta = new Vector2(bg.sizeDelta.x, MaxHeight);
         label.sizeDelta = new Vector2(label.sizeDelta.x, MaxHeight);
         expandBtn.Find("icon").GetComponent<Image>().sprite = Loader.LoadSprite("arrow_down");
-        label.RequireComponent<Text>().text = DatabaseMgr.GetHeightLabel();
+        label.RequireComponent<Text>().text = DatabaseMgr.Inst.GetHeightLabel();
     }
 
     public override void Close()

@@ -4,47 +4,49 @@ using UnityEngine;
 
 public class DatabaseMgr : MonoSingleton<DatabaseMgr>,IMgrInit
 {
-    private static Dictionary<UIPanel, UIInfo> uiDatas;
-    private static Dictionary<int, string> heightInfo;
-    private static List<int> characterIds;
-    private static List<int> enviromentIds;
-    private const string Key_PlatformPos = "PlatformPos";
-    private const string Key_Score = "Score";
-    private const string Key_PlayerPos = "PlayerPos";
+    private const string Key_CharacterID = "CharacterID";
+    private const string Key_Height = "Height";
+    private const string Key_EnvironmentID = "EnvironmentID";
 
-    private static int _score;
-    public static int Score
+    private int height;
+    private int characterId;
+    private int environmentId;
+
+    private Dictionary<UIPanelType, UIInfo> uiDatas;
+    private Dictionary<int, string> heightInfo;
+    private List<int> characterIds;
+    private List<int> enviromentIds;
+
+    public int Height
     {
-        get => _score;
-        set => _score = value;
+        get => height;
+        set => height = value;
     }
 
-    private static int characterId;
-    public static int CharacterID
+    public int CharacterID
     {
         get => characterId;
         set => characterId = value;
     }
 
-    private static int enviromentId;
-    public static int EnviromentID
+    public int EnvironmentID
     {
-        get => enviromentId;
-        set => enviromentId = value;
+        get => environmentId;
+        set => environmentId = value;
     }
 
     public void Init()
     {
-        uiDatas = new Dictionary<UIPanel, UIInfo>()
+        uiDatas = new Dictionary<UIPanelType, UIInfo>()
         {
-            { UIPanel.EnterGame,new UIInfo(UIPanel.EnterGame,UILayer.Top,1,"EnterGame")},
-            { UIPanel.Main,new UIInfo(UIPanel.Main,UILayer.Bottom,1,"Main")},
-            { UIPanel.MoreInfo,new UIInfo(UIPanel.MoreInfo,UILayer.Bottom,2,"MoreInfo") },
-            { UIPanel.Setting,new UIInfo(UIPanel.Setting,UILayer.Bottom,2,"Setting") },
-            { UIPanel.Topic,new UIInfo(UIPanel.Topic,UILayer.Bottom,2,"Topic") },
-            { UIPanel.Game,new UIInfo(UIPanel.Game,UILayer.Bottom,1,"GameUI")},
-            { UIPanel.Fail,new UIInfo(UIPanel.Fail,UILayer.Pop,1,"GameFail") },
-            { UIPanel.HeightTips,new UIInfo(UIPanel.HeightTips,UILayer.Window,1,"HeightTips") }
+            { UIPanelType.EnterGame,new UIInfo(UIPanelType.EnterGame,UILayer.Top,1,"EnterGame")},
+            { UIPanelType.Main,new UIInfo(UIPanelType.Main,UILayer.Bottom,1,"Main")},
+            { UIPanelType.MoreInfo,new UIInfo(UIPanelType.MoreInfo,UILayer.Bottom,2,"MoreInfo") },
+            { UIPanelType.Setting,new UIInfo(UIPanelType.Setting,UILayer.Bottom,2,"Setting") },
+            { UIPanelType.Topic,new UIInfo(UIPanelType.Topic,UILayer.Bottom,2,"Topic") },
+            { UIPanelType.Game,new UIInfo(UIPanelType.Game,UILayer.Bottom,1,"GameUI")},
+            { UIPanelType.Fail,new UIInfo(UIPanelType.Fail,UILayer.Pop,1,"GameFail") },
+            { UIPanelType.HeightTips,new UIInfo(UIPanelType.HeightTips,UILayer.Window,1,"HeightTips") }
         };
         heightInfo = new Dictionary<int, string>()
         {
@@ -63,17 +65,17 @@ public class DatabaseMgr : MonoSingleton<DatabaseMgr>,IMgrInit
         ReadData();
     }
 
-    public static string GetHeightLabel()
+    public string GetHeightLabel()
     {
-        return heightInfo[_score];
+        return heightInfo[height];
     }
 
-    public static bool IsMatchAnyHeight()
+    public bool IsMatchAnyHeight()
     {
-        return heightInfo.ContainsKey(_score);
+        return heightInfo.ContainsKey(height);
     }
 
-    public static UIInfo GetUIInfo(UIPanel panel)
+    public UIInfo GetUIInfo(UIPanelType panel)
     {
         if (!uiDatas.ContainsKey(panel))
         {
@@ -88,44 +90,22 @@ public class DatabaseMgr : MonoSingleton<DatabaseMgr>,IMgrInit
         return characterIds;
     }
 
-    public List<int>GetEnviroments()
+    public List<int>GetEnvironments()
     {
         return enviromentIds;
     }
 
     private void ReadData()
     {
-        _score = PlayerPrefs.GetInt(Key_Score);
+        height = PlayerPrefs.GetInt(Key_Height);
+        characterId = PlayerPrefs.GetInt(Key_CharacterID);
+        environmentId = PlayerPrefs.GetInt(Key_EnvironmentID);
     }
     private void WriteData()
     {
-        PlayerPrefs.SetInt(Key_Score, _score);
-    }
-
-    Vector3 String2Vector(string str)
-    {
-        if (string.IsNullOrEmpty(str))
-        {
-            return Vector3.zero;
-        }
-        Vector3 result = Vector3.zero;
-        try{
-            string[] strs = str.Split(',');
-            result.Set(float.Parse(strs[0]), float.Parse(strs[1]), float.Parse(strs[1]));
-        }
-        catch{
-            Debug.LogErrorFormat("[{0}] can not convert to vector3", str);
-        }
-        return result;
-    }
-
-    string Vector2String(Vector3 vector)
-    {
-        System.Text.StringBuilder result = new System.Text.StringBuilder();
-        result.Append(vector.x+",");
-        result.Append(vector.y + ",");
-        result.Append(vector.z);
-        return result.ToString();
+        PlayerPrefs.SetInt(Key_Height, height);
+        PlayerPrefs.SetInt(Key_CharacterID, characterId);
+        PlayerPrefs.SetInt(Key_EnvironmentID, environmentId);
     }
 
     public void UnInit()

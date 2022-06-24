@@ -4,20 +4,22 @@ using UnityEngine;
 using UnityEngine.UI;
 using DG.Tweening;
 
-public enum ScrollType
+public class HorizontalScroll
 {
-    Character,
-    Enviroment
-}
-public class HorizontalScroll : MonoBehaviour
-{
-    private Dictionary<int, Transform> scroll;
-    private int[] keys;
-    private float gap;
-    private float itemWidth;
-    private Sequence seq;
+    public enum ScrollType
+    {
+        Character,
+        Enviroment
+    }
 
-    public void Init(float gap, float itemWidth, params KeyValuePair<int,Transform>[] items)
+    private int[] keys = null;
+    private float gap = 0f;
+    private float itemWidth = 0f;
+
+    private Dictionary<int, Transform> scroll = null;
+    private Sequence seq = null;
+
+    public HorizontalScroll(float gap, float itemWidth, params KeyValuePair<int,Transform>[] items)
     {
         this.gap = gap;
         this.itemWidth = itemWidth;
@@ -36,6 +38,8 @@ public class HorizontalScroll : MonoBehaviour
 
     public void UnInit()
     {
+        keys = null;
+        scroll.Clear();
         DOTween.Kill(seq);
     }
 

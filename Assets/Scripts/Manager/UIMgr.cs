@@ -8,10 +8,12 @@ public class UIMgr : MonoSingleton<UIMgr>,IMgrInit
 {
     private static Dictionary<UILayer, Transform> nodes;
     private static Dictionary<UILayer, Stack<UIBase>> openUIStacks;
-    private static Dictionary<UIPanel, UIBase> hideUIDic;
+    private static Dictionary<UIPanelType, UIBase> hideUIDic;
+
     private Transform uiRoot;
     private Camera uiCamera;
     private Image blockTouchImg;
+
     public bool CanTouch
     {
         get => !blockTouchImg.raycastTarget;
@@ -44,13 +46,13 @@ public class UIMgr : MonoSingleton<UIMgr>,IMgrInit
             { UILayer.Pop,uiRoot.Find("Canvas/Pop")},
             { UILayer.Top,uiRoot.Find("Canvas/Top")}
         };
-        hideUIDic = new Dictionary<UIPanel, UIBase>();
-        OpenUI<Panel_EnterGame>(UIPanel.EnterGame);
+        hideUIDic = new Dictionary<UIPanelType, UIBase>();
+        OpenUI<Panel_EnterGame>(UIPanelType.EnterGame);
     }
-    public static void OpenUI<T>(UIPanel panel) where T:UIBase
+    public static void OpenUI<T>(UIPanelType panel) where T:UIBase
     {
         UIBase uiBase = null;
-        UIInfo uiInfo = DatabaseMgr.GetUIInfo(panel);
+        UIInfo uiInfo = DatabaseMgr.Inst.GetUIInfo(panel);
         if (!hideUIDic.ContainsKey(panel))
         {
             var obj = Instantiate<GameObject>(Loader.LoadUI(uiInfo.path));
@@ -81,16 +83,16 @@ public class UIMgr : MonoSingleton<UIMgr>,IMgrInit
         uiBase.Close();
     }
 
-    public static void CloseUI(UIPanel panel)
+    public static void CloseUI(UIPanelType panel)
     {
-        UIInfo uiInfo = DatabaseMgr.GetUIInfo(panel);
+        UIInfo uiInfo = DatabaseMgr.Inst.GetUIInfo(panel);
         UIBase uiBase = openUIStacks[uiInfo.layer].Pop();
         uiBase.Close();
     }
 
-    public static void HideUI(UIPanel panel)
+    public static void HideUI(UIPanelType panel)
     {
-        UIInfo uiInfo = DatabaseMgr.GetUIInfo(panel);
+        UIInfo uiInfo = DatabaseMgr.Inst.GetUIInfo(panel);
         UIBase uiBase = openUIStacks[uiInfo.layer].Pop();
         uiBase.gameObject.SetActive(false);
         hideUIDic.Add(panel, uiBase);

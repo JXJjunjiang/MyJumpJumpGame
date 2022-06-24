@@ -3,37 +3,36 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using DG.Tweening;
-using UnityEngine.EventSystems;
 
 public class Panel_Game : UIBase
 {
-    private CanvasGroup canvasGroup;
-    private Text score;
-    private Image touchImg;
-    public static TouchListener touch;
-    private Button exitBtn;
+    public static TouchListener touch = null;
+
+    private CanvasGroup canvasGroup = null;
+    private Text heightLabel = null;
+    private Image touchImg = null;
+    private Button exitBtn = null;
 
     protected override void Awake()
     {
         base.Awake();
         canvasGroup = GetComponent<CanvasGroup>();
-        score = transform.Find("Score").GetComponent<Text>();
+        heightLabel = transform.Find("Height").GetComponent<Text>();
         touchImg = transform.Find("TouchImg").GetComponent<Image>();
         touch = touchImg.transform.RequireComponent<TouchListener>();
-        score.text = DatabaseMgr.Score.ToString();
         exitBtn = transform.Find("ExitBtn").GetComponent<Button>();
         exitBtn.AddListener(() =>
         {
-            UIMgr.CloseUI(UIPanel.Game);
-            UIMgr.OpenUI<Panel_Main>(UIPanel.Main);
+            UIMgr.CloseUI(UIPanelType.Game);
+            UIMgr.OpenUI<Panel_Main>(UIPanelType.Main);
         });
     }
     public override void Open()
     {
         base.Open();
-        EventHandler.ScoreTween_Listener += ScoreNumberTween;
+        EventHandler.HeightTween_Listener += HeightNumberTween;
         canvasGroup.alpha = 0;
-        score.text = DatabaseMgr.Score.ToString();
+        heightLabel.text = string.Format("{0}m", DatabaseMgr.Inst.Height);
         UIMgr.Inst.CanTouch = false;
         DOTween.To((t) =>
         {
@@ -44,23 +43,23 @@ public class Panel_Game : UIBase
     public override void Close()
     {
         base.Close();
-        EventHandler.ScoreTween_Listener -= ScoreNumberTween;
+        EventHandler.HeightTween_Listener -= HeightNumberTween;
         DestroyImmediate(this.gameObject);
     }
 
-    private void ScoreNumberTween(int plusScore)
+    private void HeightNumberTween(int plusScore)
     {
-        int num = DatabaseMgr.Score + plusScore;
-        DatabaseMgr.Score = num;
-        score.text = num.ToString();
+        int num = DatabaseMgr.Inst.Height + plusScore;
+        DatabaseMgr.Inst.Height = num;
+        heightLabel.text = string.Format("{0}m", num);
         Sequence seq = DOTween.Sequence();
-        seq.Append(score.transform.DOScale(1.3f, 0.2f));
-        seq.Append(score.transform.DOScale(1f, 0.2f));
+        seq.Append(heightLabel.transform.DOScale(1.3f, 0.2f));
+        seq.Append(heightLabel.transform.DOScale(1f, 0.2f));
         seq.Play();
     }
 
     private void OnDisable()
     {
-        EventHandler.ScoreTween_Listener -= ScoreNumberTween;
+        EventHandler.HeightTween_Listener -= HeightNumberTween;
     }
 }

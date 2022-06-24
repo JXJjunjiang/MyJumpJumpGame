@@ -5,12 +5,13 @@ using UnityEngine.UI;
 
 public class Panel_Topic : UIBase
 {
-    private Button maskBtn;
-    private Transform characterRoot, enviromentRoot;
-    private HorizontalScroll characterScroll, enviromentScroll;
-    private Coroutine characterCor, enviromentCor;
-    private List<GameObject> characterSelectBorders;
-    private List<GameObject> enviromentSelectBorders;
+    private List<GameObject> characterSelectBorders = null;
+    private List<GameObject> enviromentSelectBorders = null;
+
+    private Button maskBtn = null;
+    private Transform characterRoot, enviromentRoot = null;
+    private HorizontalScroll characterScroll = null, enviromentScroll = null;
+    private Coroutine characterCor = null, enviromentCor = null;
 
     protected override void Awake()
     {
@@ -22,7 +23,7 @@ public class Panel_Topic : UIBase
         enviromentSelectBorders = new List<GameObject>();
         maskBtn.AddListener(() =>
         {
-            UIMgr.CloseUI(UIPanel.Topic);
+            UIMgr.CloseUI(UIPanelType.Topic);
         });
     }
 
@@ -40,10 +41,13 @@ public class Panel_Topic : UIBase
         {
             StopCoroutine(characterCor);
         }
+
         if (enviromentCor!=null)
         {
             StopCoroutine(enviromentCor);
         }
+        characterSelectBorders.Clear();
+        enviromentSelectBorders.Clear();
         characterScroll.UnInit();
         enviromentScroll.UnInit();
         DestroyImmediate(gameObject);
@@ -51,7 +55,6 @@ public class Panel_Topic : UIBase
 
     private IEnumerator InitCharacterScroll()
     {
-        characterScroll = characterRoot.RequireComponent<HorizontalScroll>();
         List<int> ids = DatabaseMgr.Inst.GetCharacters();
         List<Transform> objs = new List<Transform>();
         GameObject prefab = Loader.LoadUI("ScrollItem");
@@ -61,7 +64,7 @@ public class Panel_Topic : UIBase
         for (int i = 0; i < ids.Count; i++)
         {
             GameObject obj = Instantiate<GameObject>(prefab, characterRoot);
-            SetScrollItem(obj.transform, ids[i], posX, ScrollType.Character);
+            SetScrollItem(obj.transform, ids[i], posX, HorizontalScroll.ScrollType.Character);
             posX += itemWidth + gap;
             yield return new WaitForSecondsRealtime(0.1f);
             objs.Add(obj.transform);
@@ -71,9 +74,7 @@ public class Panel_Topic : UIBase
         {
             items[i] = new KeyValuePair<int, Transform>(ids[i], objs[i]);
         }
-        characterScroll.Init(5f, itemWidth, items);
-
-        SelectTarget(items[DatabaseMgr.CharacterID].Value, ScrollType.Character);
+        characterScroll = new HorizontalScroll(5f, itemWidth, items);
 
         Button btnLeft = transform.Find("CharacterSelect/LeftBtn").GetComponent<Button>();
         btnLeft.AddListener(() => characterScroll.LeftMove());
@@ -84,8 +85,7 @@ public class Panel_Topic : UIBase
 
     private IEnumerator InitEnviromentScroll()
     {
-        enviromentScroll = enviromentRoot.RequireComponent<HorizontalScroll>();
-        List<int> ids = DatabaseMgr.Inst.GetEnviroments();
+        List<int> ids = DatabaseMgr.Inst.GetEnvironments();
         List<Transform> objs = new List<Transform>();
         GameObject prefab = Loader.LoadUI("ScrollItem");
         float posX = 0;
@@ -94,7 +94,7 @@ public class Panel_Topic : UIBase
         for (int i = 0; i < ids.Count; i++)
         {
             GameObject obj = Instantiate<GameObject>(prefab, enviromentRoot);
-            SetScrollItem(obj.transform, ids[i], posX, ScrollType.Enviroment);
+            SetScrollItem(obj.transform, ids[i], posX, HorizontalScroll.ScrollType.Enviroment);
             posX += itemWidth + gap;
             yield return new WaitForSecondsRealtime(0.1f);
             objs.Add(obj.transform);
@@ -104,9 +104,7 @@ public class Panel_Topic : UIBase
         {
             items[i] = new KeyValuePair<int, Transform>(ids[i], objs[i]);
         }
-        enviromentScroll.Init(5f, itemWidth, items);
-
-        SelectTarget(items[DatabaseMgr.EnviromentID].Value, ScrollType.Enviroment);
+        enviromentScroll = new HorizontalScroll(5f, itemWidth, items);
 
         Button btnLeft = transform.Find("EnviromentSelect/LeftBtn").GetComponent<Button>();
         btnLeft.AddListener(() => enviromentScroll.LeftMove());
@@ -115,30 +113,32 @@ public class Panel_Topic : UIBase
         enviromentCor = null;
     }
 
-    void SetScrollItem(Transform trs,int id,float posX,ScrollType type)
+    void SetScrollItem(Transform trs,int id,float posX, HorizontalScroll.ScrollType type)
     {
         Button btn = trs.GetComponent<Button>();
         Image img = trs.GetComponent<Image>();
         GameObject border = trs.Find("SelectBorder").gameObject;
 
         Sprite sprite = null;
-        if (type==ScrollType.Character)
+        if (type== HorizontalScroll.ScrollType.Character)
         {
+            border.SetActive(id == DatabaseMgr.Inst.CharacterID);
             characterSelectBorders.Add(border);
             sprite = Loader.LoadSprite("CharacterSprite_" + id);
             btn.AddListener(() => 
             {
-                DatabaseMgr.CharacterID = id;
+                DatabaseMgr.Inst.CharacterID = id;
                 SelectTarget(trs, type);
             });
         }
         else
         {
+            border.SetActive(id == DatabaseMgr.Inst.EnvironmentID);
             enviromentSelectBorders.Add(border);
             sprite = Loader.LoadSprite("EnviromentSprite_" + id);
             btn.AddListener(() => 
             {
-                DatabaseMgr.EnviromentID = id;
+                DatabaseMgr.Inst.EnvironmentID = id;
                 SelectTarget(trs,type);
             });
         }
@@ -146,9 +146,9 @@ public class Panel_Topic : UIBase
         trs.localPosition = new Vector3(posX, 0, 0);
     }
 
-    void SelectTarget(Transform trs,ScrollType type)
+    void SelectTarget(Transform trs,HorizontalScroll.ScrollType type)
     {
-        if (type==ScrollType.Character)
+        if (type== HorizontalScroll.ScrollType.Character)
         {
             foreach (var b in characterSelectBorders)
             {

@@ -4,21 +4,15 @@ using UnityEngine;
 
 public class AudioMgr : MonoSingleton<AudioMgr>,IMgrInit
 {
-    private AudioSetting gameAudio;
-    private const string backgroundMusic= "BGM";
     private const string buttonMusic = "Button";
+    
     private Dictionary<string, GameObject> audioItems;
-
+    private AudioSetting gameAudio;
 
     public void Init()
     {
         audioItems = new Dictionary<string, GameObject>();
         gameAudio = Loader.LoadAudioSetting();
-    }
-
-    public void StopBGM()
-    {
-        StopAudio(backgroundMusic);
     }
 
     public void PlayButtonAudio()

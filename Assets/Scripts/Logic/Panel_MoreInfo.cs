@@ -6,9 +6,11 @@ using DG.Tweening;
 
 public class Panel_MoreInfo : UIBase
 {
-    private Button maskBtn;
-    private RectTransform rectMask;
     private static float MinY = 0f, MaxY = 700f;
+
+    private Button maskBtn = null;
+    private RectTransform rectMask = null;
+
     protected override void Awake()
     {
         base.Awake();
@@ -16,7 +18,7 @@ public class Panel_MoreInfo : UIBase
         rectMask = transform.Find("RectMask").GetComponent<RectTransform>();
         maskBtn.AddListener(() =>
         {
-            UIMgr.CloseUI(UIPanel.MoreInfo);
+            UIMgr.CloseUI(UIPanelType.MoreInfo);
         });
         rectMask.sizeDelta = new Vector2(rectMask.sizeDelta.x, MinY);
     }
@@ -38,6 +40,10 @@ public class Panel_MoreInfo : UIBase
         DOTween.To((t) =>
         {
             rectMask.sizeDelta = new Vector2(rectMask.sizeDelta.x, MaxY * t);
-        }, 1, 0, 0.3f).onComplete = () => { UIMgr.Inst.CanTouch = true; DestroyImmediate(gameObject); };
+        }, 1, 0, 0.3f).onComplete = () => 
+        {
+            UIMgr.Inst.CanTouch = true;
+            DestroyImmediate(gameObject);
+        };
     }
 }

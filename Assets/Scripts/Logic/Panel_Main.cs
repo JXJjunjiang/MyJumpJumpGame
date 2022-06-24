@@ -13,23 +13,23 @@ public class Panel_Main : UIBase
         startBtn = transform.Find("StartBtn").GetComponent<Button>();
         startBtn.AddListener(()=>
         {
-            UIMgr.OpenUI<Panel_Game>(UIPanel.Game);
-            EventHandler.GameStart_Dispatch();
+            UIMgr.OpenUI<Panel_Game>(UIPanelType.Game);
+            GameMgr.Inst.GameStart();
         });
         settingBtn = transform.Find("SettingBtn").GetComponent<Button>();
         settingBtn.AddListener(() =>
         {
-            UIMgr.OpenUI<Panel_Setting>(UIPanel.Setting);
+            UIMgr.OpenUI<Panel_Setting>(UIPanelType.Setting);
         });
         topicBtn = transform.Find("TopicBtn").GetComponent<Button>();
         topicBtn.AddListener(() =>
         {
-            UIMgr.OpenUI<Panel_Topic>(UIPanel.Topic);
+            UIMgr.OpenUI<Panel_Topic>(UIPanelType.Topic);
         });
         moreBtn = transform.Find("MoreInfoBtn").GetComponent<Button>();
         moreBtn.AddListener(() =>
         {
-            UIMgr.OpenUI<Panel_MoreInfo>(UIPanel.MoreInfo);
+            UIMgr.OpenUI<Panel_MoreInfo>(UIPanelType.MoreInfo);
         });
     }
 

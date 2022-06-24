@@ -4,12 +4,12 @@ using UnityEngine;
 
 public class UIInfo
 {
-    public UIPanel panel;
+    public UIPanelType panel;
     public UILayer layer;
     public int depth;
     public string path;
 
-    public UIInfo(UIPanel panel, UILayer layer, int depth, string path)
+    public UIInfo(UIPanelType panel, UILayer layer, int depth, string path)
     {
         this.panel = panel;
         this.layer = layer;
