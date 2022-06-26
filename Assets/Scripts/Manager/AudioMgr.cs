@@ -7,17 +7,15 @@ public class AudioMgr : MonoSingleton<AudioMgr>,IMgrInit
     private const string buttonMusic = "Button";
     
     private Dictionary<string, GameObject> audioItems;
-    private AudioSetting gameAudio;
 
     public void Init()
     {
         audioItems = new Dictionary<string, GameObject>();
-        gameAudio = Loader.LoadAudioSetting();
     }
 
     public void PlayButtonAudio()
     {
-        if (gameAudio.EnableGameMusic)
+        if (DatabaseMgr.Inst.GameAudioEnable)
         {
             PlayAudio(buttonMusic, false, false);
         }
@@ -30,6 +28,10 @@ public class AudioMgr : MonoSingleton<AudioMgr>,IMgrInit
 
     public void PlayAudio(string audioName,bool isAwake,bool isLoop,string tag="")
     {
+        if (!DatabaseMgr.Inst.GameAudioEnable)
+        {
+            return;
+        }
         AudioSource audioSource = null;
         if (audioItems.ContainsKey(audioName+tag))
         {

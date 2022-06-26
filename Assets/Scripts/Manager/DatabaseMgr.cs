@@ -7,10 +7,14 @@ public class DatabaseMgr : MonoSingleton<DatabaseMgr>,IMgrInit
     private const string Key_CharacterID = "CharacterID";
     private const string Key_Height = "Height";
     private const string Key_EnvironmentID = "EnvironmentID";
+    private const string Key_GameAudioEnable = "GameAudioEnable";
+    private const string Key_GameVirbrateEnable = "GameVirbrateEnable";
 
     private int height;
     private int characterId;
     private int environmentId;
+    private int gameAudioEnable;
+    private int gameVirbrateEnable;
 
     private Dictionary<UIPanelType, UIInfo> uiDatas;
     private Dictionary<int, string> heightInfo;
@@ -33,6 +37,18 @@ public class DatabaseMgr : MonoSingleton<DatabaseMgr>,IMgrInit
     {
         get => environmentId;
         set => environmentId = value;
+    }
+
+    public bool GameAudioEnable
+    {
+        get => gameAudioEnable == 1;
+        set => gameAudioEnable = value ? 1 : 0;
+    }
+
+    public bool GameVirbrateEnable
+    {
+        get => gameVirbrateEnable == 1;
+        set => gameVirbrateEnable = value ? 1 : 0;
     }
 
     public void Init()
@@ -97,15 +113,19 @@ public class DatabaseMgr : MonoSingleton<DatabaseMgr>,IMgrInit
 
     private void ReadData()
     {
-        height = PlayerPrefs.GetInt(Key_Height);
-        characterId = PlayerPrefs.GetInt(Key_CharacterID);
-        environmentId = PlayerPrefs.GetInt(Key_EnvironmentID);
+        height = PlayerPrefs.HasKey(Key_Height) ? PlayerPrefs.GetInt(Key_Height) : 0;
+        characterId = PlayerPrefs.HasKey(Key_CharacterID) ? PlayerPrefs.GetInt(Key_CharacterID) : 0;
+        environmentId = PlayerPrefs.HasKey(Key_EnvironmentID) ? PlayerPrefs.GetInt(Key_EnvironmentID) : 0;
+        gameAudioEnable = PlayerPrefs.HasKey(Key_GameAudioEnable) ? PlayerPrefs.GetInt(Key_GameAudioEnable) : 1;
+        gameVirbrateEnable = PlayerPrefs.HasKey(Key_GameVirbrateEnable) ? PlayerPrefs.GetInt(Key_GameVirbrateEnable) : 1;
     }
     private void WriteData()
     {
         PlayerPrefs.SetInt(Key_Height, height);
         PlayerPrefs.SetInt(Key_CharacterID, characterId);
         PlayerPrefs.SetInt(Key_EnvironmentID, environmentId);
+        PlayerPrefs.SetInt(Key_GameAudioEnable, gameAudioEnable);
+        PlayerPrefs.SetInt(Key_GameVirbrateEnable, gameVirbrateEnable);
     }
 
     public void UnInit()

@@ -7,12 +7,10 @@ public class Panel_Setting : UIBase
 {
     private Button maskBtn = null;
     private Transform gameBtn = null, virbrateBtn = null;
-    private AudioSetting audioSet = null;
 
     protected override void Awake()
     {
         base.Awake();
-        audioSet = Loader.LoadAudioSetting();
         maskBtn = transform.Find("Mask").GetComponent<Button>();
         maskBtn.AddListener(() =>
         {
@@ -22,27 +20,27 @@ public class Panel_Setting : UIBase
         SetGameAudioIcon();
         gameBtn.GetComponent<Button>().AddListener(() =>
         {
-            audioSet.EnableGameMusic = !audioSet.EnableGameMusic;
+            DatabaseMgr.Inst.GameAudioEnable = !DatabaseMgr.Inst.GameAudioEnable;
             SetGameAudioIcon();
         });
         virbrateBtn = transform.Find("VirbrateBtn");
         SetVirbrateIcon();
         virbrateBtn.GetComponent<Button>().AddListener(() =>
         {
-            audioSet.EnableVibrate = !audioSet.EnableVibrate;
+            DatabaseMgr.Inst.GameVirbrateEnable = !DatabaseMgr.Inst.GameVirbrateEnable;
             SetVirbrateIcon();
         });
     }
 
     void SetGameAudioIcon()
     {
-        string iconName = audioSet.EnableGameMusic ? "SoundActive" : "SoundDeactive";
+        string iconName = DatabaseMgr.Inst.GameAudioEnable ? "SoundActive" : "SoundDeactive";
         gameBtn.GetComponent<Image>().sprite = Loader.LoadSprite(iconName);
     }
 
     void SetVirbrateIcon()
     {
-        string iconName = audioSet.EnableVibrate ? "VibActive" : "VibDeactive";
+        string iconName = DatabaseMgr.Inst.GameVirbrateEnable ? "VibActive" : "VibDeactive";
         virbrateBtn.GetComponent<Image>().sprite = Loader.LoadSprite(iconName);
     }
 

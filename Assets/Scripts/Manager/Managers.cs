@@ -24,6 +24,7 @@ public class Managers : MonoBehaviour,IMgrInit
         {
             manager.Init();
         }
+        SetOrientation();
     }
 
     public void UnInit()
@@ -35,6 +36,20 @@ public class Managers : MonoBehaviour,IMgrInit
         managers.Clear();
     }
 
+    private void OnDestroy()
+    {
+        UnInit();
+    }
+
+    private void SetOrientation()
+    {
+#if UNITY_ANDROID
+        Screen.autorotateToLandscapeLeft = false;
+        Screen.autorotateToLandscapeRight = false;
+        Screen.autorotateToPortraitUpsideDown = false;
+        Screen.autorotateToPortrait = true;
+#endif
+    }
 
     T CreateTargetManager<T>(string managerName) where T : MonoSingleton<T>
     {

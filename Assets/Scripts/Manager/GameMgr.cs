@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
 using Factory;
+using UnityEngine.Rendering.Universal;
 
 
 public class GameMgr : MonoSingleton<GameMgr>,IMgrInit
@@ -35,7 +36,6 @@ public class GameMgr : MonoSingleton<GameMgr>,IMgrInit
 
     public void GameStart()
     {
-        InitGameRoot();
         InitData();
         InitPlayer();
     }
@@ -65,7 +65,7 @@ public class GameMgr : MonoSingleton<GameMgr>,IMgrInit
         controller.Init();
     }
 
-    private void InitGameRoot()
+    public void InitGameRoot()
     {
         if (gameRoot==null)
         {
@@ -76,6 +76,9 @@ public class GameMgr : MonoSingleton<GameMgr>,IMgrInit
             }
         }
         gameRoot.Reset();
+        Camera _mainCamera = gameRoot.Find("Main Camera").GetComponent<Camera>();
+        var _cameraData = _mainCamera.GetUniversalAdditionalCameraData();
+        _cameraData.cameraStack.Add(UIMgr.Inst.UICamera);
     }
 
     #region SpawnPlatform

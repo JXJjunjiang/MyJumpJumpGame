@@ -23,6 +23,7 @@ public class Panel_Game : UIBase
         exitBtn = transform.Find("ExitBtn").GetComponent<Button>();
         exitBtn.AddListener(() =>
         {
+            GameMgr.Inst.GameEnd();
             UIMgr.CloseUI(UIPanelType.Game);
             UIMgr.OpenUI<Panel_Main>(UIPanelType.Main);
         });

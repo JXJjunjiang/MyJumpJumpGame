@@ -46,10 +46,10 @@ public class Panel_Topic : UIBase
         {
             StopCoroutine(enviromentCor);
         }
-        characterSelectBorders.Clear();
-        enviromentSelectBorders.Clear();
-        characterScroll.UnInit();
-        enviromentScroll.UnInit();
+        characterSelectBorders?.Clear();
+        enviromentSelectBorders?.Clear();
+        characterScroll?.UnInit();
+        enviromentScroll?.UnInit();
         DestroyImmediate(gameObject);
     }
 

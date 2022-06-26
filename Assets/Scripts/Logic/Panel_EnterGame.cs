@@ -15,6 +15,7 @@ public class Panel_EnterGame : UIBase
 
     public override void Open()
     {
+        GameMgr.Inst.InitGameRoot();
         canvasGroup.alpha = 1;
         DOTween.To((t) =>
         {

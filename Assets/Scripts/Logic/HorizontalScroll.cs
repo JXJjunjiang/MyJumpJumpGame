@@ -54,7 +54,12 @@ public class HorizontalScroll
             seq.Insert(0, scroll[keys[i]].DOLocalMoveX(posX, 0.3f));
             posX += itemWidth + gap;
         }
-        seq.Play().onComplete = () => { scroll[first].localPosition = new Vector3(posX, 0, 0); };
+        UIMgr.Inst.CanTouch = false;
+        seq.Play().onComplete = () => 
+        {
+            UIMgr.Inst.CanTouch = true;
+            scroll[first].localPosition = new Vector3(posX, 0, 0);
+        };
         for (int i = 0; i < keys.Length - 1; i++)
         {
             keys[i] = keys[i + 1];
@@ -67,6 +72,7 @@ public class HorizontalScroll
         int last = keys[keys.Length - 1];
         seq = DOTween.Sequence();
         float posX = scroll[last].localPosition.x + itemWidth + gap;
+        UIMgr.Inst.CanTouch = false;
         scroll[last].localPosition = new Vector3(0 - itemWidth - gap, 0, 0);
         seq.Insert(0, scroll[last].DOLocalMoveX(0, 0.3f));
         for (int i = keys.Length-2; i >= 0; i--)
@@ -74,7 +80,7 @@ public class HorizontalScroll
             seq.Insert(0, scroll[keys[i]].DOLocalMoveX(posX, 0.3f));
             posX -= itemWidth + gap;
         }
-        seq.Play();
+        seq.Play().onComplete = () => { UIMgr.Inst.CanTouch = true; };
         for (int i = keys.Length - 1; i > 0; i--)
         {
             keys[i] = keys[i - 1];

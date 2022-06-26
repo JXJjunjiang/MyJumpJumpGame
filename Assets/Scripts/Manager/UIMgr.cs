@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using DG.Tweening;
+using UnityEngine.Rendering.Universal;
 
 public class UIMgr : MonoSingleton<UIMgr>,IMgrInit
 {

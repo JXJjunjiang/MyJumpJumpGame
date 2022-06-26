@@ -53,10 +53,14 @@ public static class UnityExtension
         img.color = color;
     }
 
-    public static void AddListener(this Button btn,Action callback)
+    public static void AddListener(this Button btn, Action callback)
     {
         btn.onClick.RemoveAllListeners();
-        btn.onClick.AddListener(() => callback?.Invoke());
+        btn.onClick.AddListener(() =>
+        {
+            AudioMgr.Inst.PlayButtonAudio();
+            callback?.Invoke();
+        });
     }
 
     public static Vector3 World2UIPos(Vector3 worldPos,RectTransform uiParent)

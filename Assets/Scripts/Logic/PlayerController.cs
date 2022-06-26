@@ -11,7 +11,7 @@ public class PlayerController : MonoBehaviour
     private const float JumpY = 8f;// 角色跳起的最高高度
     private const float JumpHorizontalSpeed = 25f;// 角色跳起的横向速度
     private const float FailedPosY = 1f;// 角色失败下坠的高度
-    private const float endPointMoveSpeed = 0.05f;
+    private const float endPointMoveSpeed = 5f;
 
     private static Vector2 platformSize = new Vector2(GameMgr.PlatformPrefabSize.x, GameMgr.PlatformPrefabSize.z);// platform水平大小
 
@@ -121,12 +121,13 @@ public class PlayerController : MonoBehaviour
     {
         UIMgr.Inst.CanTouch = false;
         Jump();
+        AudioMgr.Inst.PlayAudio("Jump",true,false);
         PlatformTween();
         isPress = false;
     }
     #endregion
 
-    private void Update()
+    private void FixedUpdate()
     {
         if (!GameMgr.Inst.CanControll)
             return;
@@ -174,7 +175,7 @@ public class PlayerController : MonoBehaviour
     {
         Vector3 temp = new Vector3(nextPlatform.localPosition.x, startPoint.y, nextPlatform.localPosition.z);
         Vector3 direction = (temp - startPoint).normalized;
-        endPoint += (direction * endPointMoveSpeed);
+        endPoint += (direction * endPointMoveSpeed * Time.fixedDeltaTime);
         float midX = startPoint.x + (endPoint.x - startPoint.x) / 2f;
         float midZ = startPoint.z + (endPoint.z - startPoint.z) / 2f;
         midPoint.Set(midX, endPoint.y + JumpY, midZ);
@@ -259,8 +260,12 @@ public class PlayerController : MonoBehaviour
                 DatabaseMgr.Inst.Height = 0;
                 GameMgr.Inst.CanControll = false;
             }
-            UIMgr.Inst.CanTouch = true;
         }
+        else
+        {
+            GameMgr.Inst.CanControll = true;
+        }
+        UIMgr.Inst.CanTouch = true;
     }
 
     void PlayerFall(System.Action callback)
